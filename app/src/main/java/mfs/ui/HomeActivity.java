@@ -3,29 +3,34 @@ package mfs.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
+import mfs.service.MessageContract;
+import mfs.service.ResponseHandler;
 import mobilefs.seminar.pdfs.service.R;
 
 public class HomeActivity extends AppCompatActivity {
 
+    public final static String LOG_TAG = HomeActivity.class.getSimpleName();
     Button mJoinGroupButton;
     Button mCreateGroupButton;
     ViewGroup mNoGroupLayout;
     FloatingActionButton mFab;
     ListView membersListView;
-    BackgroundService mBgService;
+    BackgroundServiceConnection mBgServiceConn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +49,7 @@ public class HomeActivity extends AppCompatActivity {
                 // open the join group Activity
                 Intent intent = new Intent(HomeActivity.this, JoinGroupActivity.class);
                 startActivity(intent);
+
             }
         });
 
@@ -62,6 +68,25 @@ public class HomeActivity extends AppCompatActivity {
                 //temp
                 Snackbar.make(mJoinGroupButton, "Does Nothing for now", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+                // sample to send message to bg service
+                Messenger bgService = mBgServiceConn.getService();
+
+                if(bgService != null){
+                    Message request = Message.obtain(null, MessageContract.MSG_HELLO);
+                    request.replyTo = new Messenger(new ResponseHandler());
+                    try{
+                        bgService.send(request);
+                    }
+                    catch (RemoteException e)
+                    {
+                        Log.e(LOG_TAG, "Unable to send request bg service.");
+                    }
+                }
+                else {
+                    Log.e(LOG_TAG, "Not connected to bg service.");
+
+                }
             }
         });
 
@@ -70,18 +95,15 @@ public class HomeActivity extends AppCompatActivity {
         membersListView.setVisibility(View.INVISIBLE);
 
         // bind to background service
-        BackgroundServiceConnection connection = new BackgroundServiceConnection();
-        bindService(new Intent(getApplicationContext(),
-                BackgroundService.class), connection, Context.BIND_AUTO_CREATE);
+        mBgServiceConn = new BackgroundServiceConnection();
+        startService(new Intent(this,BackgroundService.class));
+        bindService(new Intent(this,
+                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
+    }
 
-        Messenger service = connection.getService();
-        if(service != null){
-            Toast.makeText(this, "Connected to background service.",
-                       Toast.LENGTH_SHORT).show();
-        }
-
-        unbindService(connection);
-
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mBgServiceConn);
     }
 }

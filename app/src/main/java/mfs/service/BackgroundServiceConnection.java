@@ -4,8 +4,11 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.util.Log;
 
 public class BackgroundServiceConnection implements ServiceConnection {
+
+    public final static String LOG_TAG = BackgroundService.class.getSimpleName();
 
     /** Messenger for communicating with service. */
     Messenger mService = null;
@@ -21,12 +24,8 @@ public class BackgroundServiceConnection implements ServiceConnection {
      */
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-
+        Log.i(LOG_TAG, "Connected to the bg service.");
         mService = new Messenger(service);
-
-//        Toast.makeText(this, "Connected to background service.",
-//                Toast.LENGTH_SHORT).show();
-
     }
 
     /**
@@ -41,6 +40,7 @@ public class BackgroundServiceConnection implements ServiceConnection {
      */
     @Override
     public void onServiceDisconnected(ComponentName name) {
+        Log.i(LOG_TAG, "Disconnected from the bg service.");
         mService = null;
     }
 

@@ -4,37 +4,20 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.Messenger;
-import android.widget.Toast;
+import android.util.Log;
 
 public class BackgroundService extends Service {
 
+    private final static String LOG_TAG = BackgroundService.class.getSimpleName();
     // This is the object that receives interactions from clients.
-    final Messenger mMessenger = new Messenger(new IncomingHandler());
-
-
-    public BackgroundService() {
-    }
-
-    public class IncomingHandler extends Handler {
-        /**
-         * Subclasses must implement this to receive messages.
-         *
-         * @param msg
-         */
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-        }
-    }
+    private Messenger mMessenger;
 
     @Override
     public void onCreate() {
-        Toast.makeText(getApplicationContext(), "Creating background service.",
-                Toast.LENGTH_SHORT).show();
+        mMessenger = new Messenger(new RequestHandler());
+        Log.i(LOG_TAG, "Bg Service Created.");
     }
 
     /**
@@ -45,14 +28,6 @@ public class BackgroundService extends Service {
      * <p>For backwards compatibility, the default implementation calls
      * {@link #onStart} and returns either {@link #START_STICKY}
      * or {@link #START_STICKY_COMPATIBILITY}.
-     * <p/>
-     * <p>If you need your application to run on platform versions prior to API
-     * level 5, you can use the following model to handle the older {@link #onStart}
-     * callback in that case.  The <code>handleCommand</code> method is implemented by
-     * you as appropriate:
-     * <p/>
-     * {@sample development/samples/ApiDemos/src/com/example/android/apis/app/ForegroundService.java
-     * start_compatibility}
      * <p/>
      * <p class="caution">Note that the system calls this on your
      * service's main thread.  A service's main thread is the same
@@ -78,11 +53,8 @@ public class BackgroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Toast.makeText(getApplicationContext(),
-                "Starting background service: Received start id " + startId + ": " + intent,
-                Toast.LENGTH_SHORT).show();
-
-        return START_NOT_STICKY;
+        Log.i(LOG_TAG, "Bg Service onStartCommand().");
+        return START_STICKY;
 
     }
 
@@ -95,8 +67,8 @@ public class BackgroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Toast.makeText(getApplicationContext(), "Destroying background service.",
-                Toast.LENGTH_SHORT).show();
+        mMessenger = null;
+        Log.i(LOG_TAG, "Bg Service Destroyed.");
     }
 
     @Override
