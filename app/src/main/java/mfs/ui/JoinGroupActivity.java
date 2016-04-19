@@ -9,8 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -33,6 +31,7 @@ public class JoinGroupActivity extends AppCompatActivity {
     EditText groupLinkEditText;
     Button joinButton;
     Button pickFilesButton;
+    String mUserName;
     NodeManager mNodeManager = ServiceAccessor.getNodeManager();
 
     @Override
@@ -42,6 +41,8 @@ public class JoinGroupActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mUserName = getIntent().getStringExtra(Constants.TAG_NAME);
 
         groupLinkEditText = (EditText) findViewById(R.id.editText_groupLink);
         joinButton = (Button) findViewById(R.id.button_joinGroup);
@@ -53,18 +54,11 @@ public class JoinGroupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // join group code goes here.......
                 if(mNodeManager.joinGroup(groupLinkEditText.getText().toString())) {
-                    // if successful go back to the make screen
-                    Intent upIntent = NavUtils.getParentActivityIntent(JoinGroupActivity.this);
-                    // if the parent activity needs to be recreated, create it
-                    // otherwise bring back the already existing activity
-                    if (NavUtils.shouldUpRecreateTask(JoinGroupActivity.this, upIntent)) {
-                        TaskStackBuilder.create(JoinGroupActivity.this)
-                                .addNextIntentWithParentStack(upIntent).startActivities();
-                    }
-                    upIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    // if successful go back to the main screen
+                    Intent upIntent = new Intent(JoinGroupActivity.this, HomeActivity.class);
+                    upIntent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_JOIN_GROUP_DONE);
+                    upIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     startActivity(upIntent);
-                    Snackbar.make(joinButton, "Joined Group.", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
                 }
                 else
                 {

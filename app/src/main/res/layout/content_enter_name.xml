@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="mfs.ui.EnterNameActivity"
+    tools:showIn="@layout/activity_enter_name">
+
+    <Space
+        android:id="@+id/space_enterName"
+        android:layout_width="match_parent"
+        android:layout_height="100dp" />
+
+    <EditText
+        android:id="@+id/editText_enterName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/space_enterName"
+        android:layout_toLeftOf="@+id/button_name_next"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:gravity="center"
+        android:windowSoftInputMode="stateVisible|adjustPan"
+        android:hint="@string/label_enterName"
+        />
+    <Button
+        android:id="@+id/button_name_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/space_enterName"
+        android:layout_alignParentRight="true"
+        android:text="Next"/>
+
+</RelativeLayout>

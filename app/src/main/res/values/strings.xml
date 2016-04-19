@@ -11,13 +11,17 @@
     <!-- Strings for the Create/Join Group Activity -->
     <string name="label_createGroup">Provide these details for others to join your group</string>
     <string name="label_joinGroup">Enter the link to join a group</string>
-    <string name="button_CreateGroup">Copy</string>
+    <string name="button_copy">Copy</string>
+    <string name="button_backHome">Home</string>
     <string name="button_joinGroup">Join</string>
     <string name="button_pickFiles">Select Files</string>
-
+    <string name="label_enterName">Enter Your Name</string>
+    <string name="label_createGroupSuccess">Group Create Successfully</string>
+    <string name="label_createGroupFailure">Group Creation Failed</string>
 
     <string name="title_activity_join_group">Join Group</string>
-    <string name="title_activity_create_group">CreateGroupActivity</string>
+    <string name="title_activity_create_group">Create Group</string>
     <string name="title_activity_file_picker">Select Files to share</string>
+    <string name="title_activity_enter_name">Enter Name</string>
 
 </resources>

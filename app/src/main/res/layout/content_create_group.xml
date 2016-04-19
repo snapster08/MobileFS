@@ -8,28 +8,63 @@
     tools:context="mfs.ui.CreateGroupActivity"
     tools:showIn="@layout/activity_create_group">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
+    <TextView
+        android:id="@+id/textView_creatGroupStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/layout_groupInfo"
+        android:layout_centerHorizontal="true"
+        android:paddingTop="@dimen/textView_padding"
+        android:paddingBottom="@dimen/textView_padding"
+        style="@style/TextAppearance.AppCompat.Title"
+        android:text="Group Created Successfully!"/>
+
+    <RelativeLayout
+        android:id="@+id/layout_groupInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true">
         <TextView
+            android:id="@+id/textViewLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            style="@style/TextAppearance.AppCompat.Subhead.WithPadding"
+            android:layout_centerHorizontal="true"
+            android:paddingTop="@dimen/textView_padding"
+            android:paddingBottom="@dimen/textView_padding"
+            style="@style/TextAppearance.AppCompat.Subhead"
             android:text="@string/label_createGroup"/>
         <TextView
             android:id="@+id/textView_createInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextAppearance.AppCompat.Subhead.WithPadding"
+            android:layout_below="@+id/textViewLabel"
+            android:layout_centerHorizontal="true"
+            android:paddingTop="@dimen/textView_padding"
+            android:paddingBottom="@dimen/textView_padding"
+            style="@style/TextAppearance.AppCompat.Subhead"
             android:text="@string/label_dynamicContent"/>
-        <Button
-            android:id="@+id/button_copyGroupInfo"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/button_CreateGroup"/>
-    </LinearLayout>
+            android:layout_below="@+id/textView_createInfo"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <Button
+                android:id="@+id/button_copyGroupInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_copy"/>
+            <android.support.v4.widget.Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/button_homeFromCreateGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_backHome"/>
+        </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>

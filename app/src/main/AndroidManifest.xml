@@ -21,7 +21,7 @@
         <activity
             android:name="mfs.ui.JoinGroupActivity"
             android:label="@string/title_activity_join_group"
-            android:parentActivityName="mfs.ui.HomeActivity"
+            android:parentActivityName="mfs.ui.EnterNameActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -30,7 +30,7 @@
         <activity
             android:name="mfs.ui.CreateGroupActivity"
             android:label="@string/title_activity_create_group"
-            android:parentActivityName="mfs.ui.HomeActivity"
+            android:parentActivityName="mfs.ui.EnterNameActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -44,14 +44,22 @@
             android:theme="@style/FilePickerTheme">
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
-        <service
-            android:name="mfs.service.BackgroundService">
-        </service>
+        <service android:name="mfs.service.BackgroundService"></service>
 
+        <activity
+            android:name="mfs.ui.EnterNameActivity"
+            android:label="@string/title_activity_enter_name"
+            android:parentActivityName="mfs.ui.HomeActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="mfs.ui.HomeActivity" />
+        </activity>
     </application>
 
 </manifest>

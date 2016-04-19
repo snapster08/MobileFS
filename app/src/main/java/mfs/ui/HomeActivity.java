@@ -33,6 +33,7 @@ public class HomeActivity extends AppCompatActivity {
     FloatingActionButton mFab;
     ListView membersListView;
     BackgroundServiceConnection mBgServiceConn;
+    int mActiontype;
     NodeManager mNodeManager = ServiceAccessor.getNodeManager();
 
     @Override
@@ -49,18 +50,19 @@ public class HomeActivity extends AppCompatActivity {
         mJoinGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // open the join group Activity
-                Intent intent = new Intent(HomeActivity.this, JoinGroupActivity.class);
+                // open the enterName Activity
+                Intent intent = new Intent(HomeActivity.this, EnterNameActivity.class);
+                intent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_JOIN_GROUP);
                 startActivity(intent);
-
             }
         });
 
         mCreateGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // open the create group Activity
-                Intent intent = new Intent(HomeActivity.this, CreateGroupActivity.class);
+                // open the enterName Activity
+                Intent intent = new Intent(HomeActivity.this, EnterNameActivity.class);
+                intent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_CREATE_GROUP);
                 startActivity(intent);
             }
         });
@@ -101,11 +103,28 @@ public class HomeActivity extends AppCompatActivity {
 //        Log.i(LOG_TAG, fs.getFileSystemStructure(
 //                Environment.getExternalStorageDirectory().getAbsolutePath()).toString());
 
+        Log.i(LOG_TAG, "On Create.");
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        // process the extra information provided
+        mActiontype = getIntent().getIntExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_NOTHING);
+        Log.i(LOG_TAG, "On Start ActionType: " +mActiontype );
+
+        switch (mActiontype) {
+            case Constants.ACTION_CREATE_GROUP_DONE:
+                Snackbar.make(membersListView, "Created Group.", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
+                break;
+            case Constants.ACTION_JOIN_GROUP_DONE:
+                Snackbar.make(membersListView, "Joined Group.", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
+                break;
+
+        }
 
         // bind to the background service
         bindService(new Intent(this,
@@ -122,6 +141,12 @@ public class HomeActivity extends AppCompatActivity {
             mFab.setVisibility(View.VISIBLE);
             mNoGroupLayout.setVisibility(View.INVISIBLE);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 
     @Override

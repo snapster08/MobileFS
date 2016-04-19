@@ -2,14 +2,11 @@ package mfs.node;
 
 import java.util.List;
 
-/**
- * Created by bala on 4/11/16.
- */
 public interface NodeManager {
 
     boolean isConnectedToGroup();
 
-    void createGroup();
+    boolean createGroup();
 
     boolean joinGroup(String groupLink);
 

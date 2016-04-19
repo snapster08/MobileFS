@@ -30,8 +30,9 @@ public class  ServiceAccessor {
             }
 
             @Override
-            public void createGroup() {
+            public boolean createGroup() {
 
+                return true;
             }
 
             @Override
