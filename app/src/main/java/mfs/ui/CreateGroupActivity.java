@@ -16,6 +16,8 @@ import mobilefs.seminar.pdfs.service.R;
 
 public class CreateGroupActivity extends AppCompatActivity {
 
+    public final static String LOG_TAG = CreateGroupActivity.class.getSimpleName();
+
     Button copyButton;
     TextView createInfoTextView;
 

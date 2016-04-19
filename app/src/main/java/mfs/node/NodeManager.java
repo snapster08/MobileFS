@@ -11,7 +11,7 @@ public interface NodeManager {
 
     void createGroup();
 
-    void joinGroup(String groupLink);
+    boolean joinGroup(String groupLink);
 
     void exitGroup();
 

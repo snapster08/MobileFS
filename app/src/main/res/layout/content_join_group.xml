@@ -14,18 +14,25 @@
         android:orientation="vertical"
         android:gravity="center">
         <EditText
+            android:id="@+id/editText_groupLink"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/label_joinGroup"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:inputType="textUri"
             android:gravity="center"/>
         <Button
             android:id="@+id/button_joinGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_joinGroup"/>
+
+        <Button
+            android:id="@+id/button_pickFiles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_pickFiles"/>
+
     </LinearLayout>
 
 </RelativeLayout>

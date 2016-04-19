@@ -16,10 +16,12 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
 import mfs.service.MessageContract;
 import mfs.service.ResponseHandler;
+import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
 
 public class HomeActivity extends AppCompatActivity {
@@ -31,6 +33,7 @@ public class HomeActivity extends AppCompatActivity {
     FloatingActionButton mFab;
     ListView membersListView;
     BackgroundServiceConnection mBgServiceConn;
+    NodeManager mNodeManager = ServiceAccessor.getNodeManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +74,6 @@ public class HomeActivity extends AppCompatActivity {
 
                 // sample to send message to bg service
                 Messenger bgService = mBgServiceConn.getService();
-
                 if(bgService != null){
                     Message request = Message.obtain(null, MessageContract.MSG_HELLO);
                     request.replyTo = new Messenger(new ResponseHandler());
@@ -90,20 +92,48 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-        // check if connected to a group, if connected do mNoGroupLayout.setVisibility(View.INVISIBLE);
-        //if(NodeManager.isConnectedToGroup())
-        membersListView.setVisibility(View.INVISIBLE);
-
-        // bind to background service
+        // start the background service
         mBgServiceConn = new BackgroundServiceConnection();
         startService(new Intent(this,BackgroundService.class));
+
+//        //To get the filesystem structure
+//        Filesystem fs = ServiceAccessor.getFilesystem();
+//        Log.i(LOG_TAG, fs.getFileSystemStructure(
+//                Environment.getExternalStorageDirectory().getAbsolutePath()).toString());
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // bind to the background service
         bindService(new Intent(this,
                 BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
+
+        // check if connected to a group and display the appropriate elements
+        if(mNodeManager == null || !mNodeManager.isConnectedToGroup())  {
+            mNoGroupLayout.setVisibility(View.VISIBLE);
+            membersListView.setVisibility(View.INVISIBLE);
+            mFab.setVisibility(View.INVISIBLE);
+        }
+        else {
+            membersListView.setVisibility(View.VISIBLE);
+            mFab.setVisibility(View.VISIBLE);
+            mNoGroupLayout.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(mBgServiceConn);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mBgServiceConn);
+        // this will stop the service provided all the clients are unbound
+        stopService(new Intent(this,BackgroundService.class));
     }
 }

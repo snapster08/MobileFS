@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">MobileFS</string>
 
+    <!-- Generic Strings -->
+    <string name="label_dynamicContent">This needs to be populated dynamically</string>
+    <string name="label_notImplemented">Not Implemented</string>
+
     <!-- Strings for the Home Activity -->
     <string name="label_noGroup">You Are not a part of any group.</string>
 
@@ -9,12 +13,11 @@
     <string name="label_joinGroup">Enter the link to join a group</string>
     <string name="button_CreateGroup">Copy</string>
     <string name="button_joinGroup">Join</string>
+    <string name="button_pickFiles">Select Files</string>
 
 
-    <!-- Generic Strings -->
-    <string name="label_dynamicContent">This needs to be populated dynamically</string>
-    <string name="label_notImplemented">Not Implemented</string>
     <string name="title_activity_join_group">Join Group</string>
     <string name="title_activity_create_group">CreateGroupActivity</string>
+    <string name="title_activity_file_picker">Select Files to share</string>
 
 </resources>

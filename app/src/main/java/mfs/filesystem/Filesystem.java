@@ -1,7 +1,7 @@
 package mfs.filesystem;
 
-import java.io.File;
-import java.io.FilePermission;
+import org.json.JSONObject;
+
 import java.util.List;
 
 import mfs.node.MobileNode;
@@ -20,5 +20,9 @@ public interface Filesystem {
     boolean isOpen(MobileFile file);
 
     List<String> ls(String path);
+
+    JSONObject getFileSystemStructure(String path, boolean includeHidden);
+
+    JSONObject getFileSystemStructure(String path);
 
 }
