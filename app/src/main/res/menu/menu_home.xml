@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_stop_server"
+        android:icon="@drawable/ic_stop_black_24dp"
+        android:title="@string/action_stop_server"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_start_server"
+        android:icon="@drawable/ic_play_arrow_black_24dp"
+        android:title="@string/action_start_server"
+        app:showAsAction="always" />
+</menu>
+

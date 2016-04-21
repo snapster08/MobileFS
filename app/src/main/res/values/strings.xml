@@ -24,4 +24,12 @@
     <string name="title_activity_file_picker">Select Files to share</string>
     <string name="title_activity_enter_name">Enter Name</string>
 
+    <!-- Shared Preferences -->
+    <string name="key_server_isStarted">key_server_isStarted</string>
+
+
+    <!-- Menu Options -->
+    <string name="action_stop_server">Stop Server</string>
+    <string name="action_start_server">Start Server</string>
+
 </resources>

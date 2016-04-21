@@ -1,26 +1,24 @@
 package mfs.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import mfs.Utility;
 import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
-import mfs.service.MessageContract;
-import mfs.service.ResponseHandler;
 import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
 
@@ -74,29 +72,13 @@ public class HomeActivity extends AppCompatActivity {
                 Snackbar.make(mJoinGroupButton, "Does Nothing for now", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                // sample to send message to bg service
-                Messenger bgService = mBgServiceConn.getService();
-                if(bgService != null){
-                    Message request = Message.obtain(null, MessageContract.MSG_HELLO);
-                    request.replyTo = new Messenger(new ResponseHandler());
-                    try{
-                        bgService.send(request);
-                    }
-                    catch (RemoteException e)
-                    {
-                        Log.e(LOG_TAG, "Unable to send request bg service.");
-                    }
-                }
-                else {
-                    Log.e(LOG_TAG, "Not connected to bg service.");
-
-                }
             }
         });
 
+        //mBgServiceConn = new BackgroundServiceConnection();
+
         // start the background service
-        mBgServiceConn = new BackgroundServiceConnection();
-        startService(new Intent(this,BackgroundService.class));
+        startService(new Intent(this, BackgroundService.class));
 
 //        //To get the filesystem structure
 //        Filesystem fs = ServiceAccessor.getFilesystem();
@@ -104,14 +86,15 @@ public class HomeActivity extends AppCompatActivity {
 //                Environment.getExternalStorageDirectory().getAbsolutePath()).toString());
 
         Log.i(LOG_TAG, "On Create.");
-
     }
-
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
         // process the extra information provided
-        mActiontype = getIntent().getIntExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_NOTHING);
+        Intent intent = getIntent();
+        mActiontype = intent.getIntExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_NOTHING);
+        intent.removeExtra(Constants.TAG_ACTION_TYPE);
+        setIntent(intent);
         Log.i(LOG_TAG, "On Start ActionType: " +mActiontype );
 
         switch (mActiontype) {
@@ -126,9 +109,9 @@ public class HomeActivity extends AppCompatActivity {
 
         }
 
-        // bind to the background service
-        bindService(new Intent(this,
-                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
+//        // bind to the background service
+//        bindService(new Intent(this,
+//                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
 
         // check if connected to a group and display the appropriate elements
         if(mNodeManager == null || !mNodeManager.isConnectedToGroup())  {
@@ -150,15 +133,55 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(mBgServiceConn);
+    protected void onPause() {
+        super.onPause();
+        //unbindService(mBgServiceConn);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // this will stop the service provided all the clients are unbound
-        stopService(new Intent(this,BackgroundService.class));
+        Log.i(LOG_TAG, "In onDestroy()");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.menu_home, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        if(Utility.isServiceStarted(this)) {
+            menu.findItem(R.id.action_start_server).setVisible(false);
+            menu.findItem(R.id.action_stop_server).setVisible(true);
+            return true;
+        }
+        else {
+            menu.findItem(R.id.action_start_server).setVisible(true);
+            menu.findItem(R.id.action_stop_server).setVisible(false);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_stop_server:
+                // this will stop the service provided all the clients are unbound
+                stopService(new Intent(this,BackgroundService.class));
+//                unbindService(mBgServiceConn);
+                return true;
+            case R.id.action_start_server:
+                // this will start the service if it is was not started already
+                startService(new Intent(this,BackgroundService.class));
+//                bindService(new Intent(this,
+//                        BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
+

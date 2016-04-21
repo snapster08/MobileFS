@@ -1,22 +1,66 @@
 package mfs.service;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
+import mfs.Utility;
+import mfs.ui.HomeActivity;
+import mobilefs.seminar.pdfs.service.R;
 
 public class BackgroundService extends Service {
 
     private final static String LOG_TAG = BackgroundService.class.getSimpleName();
+
     // This is the object that receives interactions from clients.
     private Messenger mMessenger;
 
+    // for the notification
+    private static final int PERMANENT_NOTIFICATION_ID = 1;
+    public static final String EXIT_ACTION = "mobilefs.seminar.pdfs.service.action.exit";
+    private Notification mPermanentNotification;
+
+    Notification buildPermanentNotification() {
+
+        Intent homeIntent = new Intent(this, HomeActivity.class);
+        PendingIntent homePendingIntent =
+                PendingIntent.getActivity(
+                        getApplicationContext(),
+                        0,
+                        homeIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+
+        Intent stopIntent = new Intent(this, BackgroundService.class);
+        stopIntent.setAction(EXIT_ACTION);
+        PendingIntent exitPendingIntent = PendingIntent.getService(getApplicationContext(),
+                0,
+                stopIntent,
+                0);
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(getApplicationContext())
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("Listening for requests")
+                        .setContentText("Touch to open.")
+                        .setContentIntent(homePendingIntent)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                                "Stop", exitPendingIntent);
+        return mBuilder.build();
+    }
+
     @Override
     public void onCreate() {
+        Utility.setServiceStarted(this, true);
         mMessenger = new Messenger(new RequestHandler());
+        mPermanentNotification = buildPermanentNotification();
         Log.i(LOG_TAG, "Bg Service Created.");
     }
 
@@ -52,11 +96,23 @@ public class BackgroundService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         Log.i(LOG_TAG, "Bg Service onStartCommand().");
+
+        final String action = intent.getAction();
+        if(action != null){
+            switch (action) {
+                case EXIT_ACTION:
+                    Log.i(LOG_TAG, "Exiting Bg Service.");
+                    stopSelf();
+                    break;
+            }
+        }
+
+        startForeground(PERMANENT_NOTIFICATION_ID, mPermanentNotification);
         return START_STICKY;
 
     }
+
 
     /**
      * Called by the system to notify a Service that it is no longer used and is being removed.  The
@@ -67,6 +123,7 @@ public class BackgroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Utility.setServiceStarted(this, false);
         mMessenger = null;
         Log.i(LOG_TAG, "Bg Service Destroyed.");
     }
