@@ -15,4 +15,9 @@ public class Constants {
     public final static int ACTION_JOIN_GROUP = 3;
     public final static int ACTION_JOIN_GROUP_DONE = 4;
 
+
+    // Loader identifiers
+    public final static int LOADER_MEMBERS_LIST = 0;
+
+
 }

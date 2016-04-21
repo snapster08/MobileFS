@@ -1,6 +1,10 @@
 package mfs.ui;
 
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,25 +15,28 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import mfs.Utility;
+import mfs.data.DataContract;
 import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
 import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     public final static String LOG_TAG = HomeActivity.class.getSimpleName();
     Button mJoinGroupButton;
     Button mCreateGroupButton;
     ViewGroup mNoGroupLayout;
     FloatingActionButton mFab;
-    ListView membersListView;
+    ListView mMembersListView;
+    MemberListAdapter mMembersListAdapter;
     BackgroundServiceConnection mBgServiceConn;
     int mActiontype;
     NodeManager mNodeManager = ServiceAccessor.getNodeManager();
@@ -43,7 +50,7 @@ public class HomeActivity extends AppCompatActivity {
         mCreateGroupButton = (Button) findViewById(R.id.button_create);
         mNoGroupLayout = (LinearLayout) findViewById(R.id.layout_noGroup);
         mFab = (FloatingActionButton) findViewById(R.id.fab_add);
-        membersListView = (ListView) findViewById(R.id.list_members);
+        mMembersListView = (ListView) findViewById(R.id.list_members);
 
         mJoinGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,9 +78,31 @@ public class HomeActivity extends AppCompatActivity {
                 //temp
                 Snackbar.make(mJoinGroupButton, "Does Nothing for now", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-
             }
         });
+
+        // initialize a loader for the mMembersListView
+        getLoaderManager().initLoader(Constants.LOADER_MEMBERS_LIST, null, this);
+
+        // create a adapter for the members list
+        mMembersListAdapter = new MemberListAdapter(this, null, 0);
+        mMembersListView.setAdapter(mMembersListAdapter);
+
+        // set up on click on the memberlist
+        mMembersListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // handle click on member, load new activity browse the file structure of member
+                Cursor memberCursor = (Cursor) mMembersListAdapter.getItem(position);
+
+                // make an intent containing this member info
+                // and pass it to the MemberDetailsActivity
+            }
+        });
+
+
+
+
 
         //mBgServiceConn = new BackgroundServiceConnection();
 
@@ -99,11 +128,11 @@ public class HomeActivity extends AppCompatActivity {
 
         switch (mActiontype) {
             case Constants.ACTION_CREATE_GROUP_DONE:
-                Snackbar.make(membersListView, "Created Group.", Snackbar.LENGTH_SHORT)
+                Snackbar.make(mMembersListView, "Created Group.", Snackbar.LENGTH_SHORT)
                         .setAction("Action", null).show();
                 break;
             case Constants.ACTION_JOIN_GROUP_DONE:
-                Snackbar.make(membersListView, "Joined Group.", Snackbar.LENGTH_SHORT)
+                Snackbar.make(mMembersListView, "Joined Group.", Snackbar.LENGTH_SHORT)
                         .setAction("Action", null).show();
                 break;
 
@@ -116,11 +145,11 @@ public class HomeActivity extends AppCompatActivity {
         // check if connected to a group and display the appropriate elements
         if(mNodeManager == null || !mNodeManager.isConnectedToGroup())  {
             mNoGroupLayout.setVisibility(View.VISIBLE);
-            membersListView.setVisibility(View.INVISIBLE);
+            mMembersListView.setVisibility(View.INVISIBLE);
             mFab.setVisibility(View.INVISIBLE);
         }
         else {
-            membersListView.setVisibility(View.VISIBLE);
+            mMembersListView.setVisibility(View.VISIBLE);
             mFab.setVisibility(View.VISIBLE);
             mNoGroupLayout.setVisibility(View.INVISIBLE);
         }
@@ -181,6 +210,48 @@ public class HomeActivity extends AppCompatActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /**
+     * Instantiate and return a new Loader for the given ID.
+     *
+     * @param id   The ID whose loader is to be created.
+     * @param args Any arguments supplied by the caller.
+     * @return Return a new Loader instance that is ready to start loading.
+     */
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CursorLoader loader = new CursorLoader(
+                this,
+                DataContract.MembersEntry.CONTENT_URI,
+                null,   // projection
+                null,   // selection
+                null,   // selection args
+                null);  // sortOrder
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.e(LOG_TAG, "Load Finished for loader: " +loader.getId());
+        switch (loader.getId()) {
+            case Constants.LOADER_MEMBERS_LIST:
+                mMembersListAdapter.swapCursor(data);
+                break;
+            default:
+                Log.e(LOG_TAG, "Unknown Loader Finished.");
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+            case Constants.LOADER_MEMBERS_LIST:
+                mMembersListAdapter.swapCursor(null);
+                break;
+            default:
+                Log.e(LOG_TAG, "Unknown Loader Reset.");
         }
     }
 }
