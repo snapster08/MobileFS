@@ -41,7 +41,7 @@ public class MemberListAdapter extends CursorAdapter {
      */
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view = LayoutInflater.from(context).inflate(R.layout.member_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.member_list_item, parent, false);
         ViewHolder viewHolder = new ViewHolder(view);
         view.setTag(viewHolder);
         return view;

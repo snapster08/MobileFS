@@ -82,7 +82,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         // initialize a loader for the mMembersListView
-        getLoaderManager().initLoader(Constants.LOADER_MEMBERS_LIST, null, this);
+        getLoaderManager().initLoader(Constants.LOADER_MEMBER_LIST, null, this);
 
         // create a adapter for the members list
         mMembersListAdapter = new MemberListAdapter(this, null, 0);
@@ -99,10 +99,6 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 // and pass it to the MemberDetailsActivity
             }
         });
-
-
-
-
 
         //mBgServiceConn = new BackgroundServiceConnection();
 
@@ -143,7 +139,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
 //                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
 
         // check if connected to a group and display the appropriate elements
-        if(mNodeManager == null || !mNodeManager.isConnectedToGroup())  {
+        if(!mNodeManager.isConnectedToGroup())  {
             mNoGroupLayout.setVisibility(View.VISIBLE);
             mMembersListView.setVisibility(View.INVISIBLE);
             mFab.setVisibility(View.INVISIBLE);
@@ -222,21 +218,20 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
      */
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        CursorLoader loader = new CursorLoader(
+        return new CursorLoader(
                 this,
                 DataContract.MembersEntry.CONTENT_URI,
                 null,   // projection
                 null,   // selection
                 null,   // selection args
                 null);  // sortOrder
-        return loader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.e(LOG_TAG, "Load Finished for loader: " +loader.getId());
+        Log.i(LOG_TAG, "Load Finished for loader: " +loader.getId());
         switch (loader.getId()) {
-            case Constants.LOADER_MEMBERS_LIST:
+            case Constants.LOADER_MEMBER_LIST:
                 mMembersListAdapter.swapCursor(data);
                 break;
             default:
@@ -247,7 +242,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         switch (loader.getId()) {
-            case Constants.LOADER_MEMBERS_LIST:
+            case Constants.LOADER_MEMBER_LIST:
                 mMembersListAdapter.swapCursor(null);
                 break;
             default:

@@ -12,6 +12,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import mfs.Utility;
+import mfs.network.Server;
+import mfs.network.ServerContract;
 import mfs.ui.HomeActivity;
 import mobilefs.seminar.pdfs.service.R;
 
@@ -24,8 +26,11 @@ public class BackgroundService extends Service {
 
     // for the notification
     private static final int PERMANENT_NOTIFICATION_ID = 1;
-    public static final String EXIT_ACTION = "mobilefs.seminar.pdfs.service.action.exit";
+    public static final String ACTION_EXIT = "mobilefs.seminar.pdfs.service.action.exit";
     private Notification mPermanentNotification;
+
+    // server
+    Server mServer;
 
     Notification buildPermanentNotification() {
 
@@ -39,7 +44,7 @@ public class BackgroundService extends Service {
                 );
 
         Intent stopIntent = new Intent(this, BackgroundService.class);
-        stopIntent.setAction(EXIT_ACTION);
+        stopIntent.setAction(ACTION_EXIT);
         PendingIntent exitPendingIntent = PendingIntent.getService(getApplicationContext(),
                 0,
                 stopIntent,
@@ -58,10 +63,17 @@ public class BackgroundService extends Service {
 
     @Override
     public void onCreate() {
+
+        ServiceAccessor.setContext(getApplicationContext());
+
         Utility.setServiceStarted(this, true);
         mMessenger = new Messenger(new RequestHandler());
         mPermanentNotification = buildPermanentNotification();
         Log.i(LOG_TAG, "Bg Service Created.");
+
+        // create a server and listen to requests
+        mServer = new Server();
+        mServer.start(ServerContract.SERVER_PORT);
     }
 
     /**
@@ -101,7 +113,7 @@ public class BackgroundService extends Service {
         final String action = intent.getAction();
         if(action != null){
             switch (action) {
-                case EXIT_ACTION:
+                case ACTION_EXIT:
                     Log.i(LOG_TAG, "Exiting Bg Service.");
                     stopSelf();
                     break;
@@ -110,9 +122,7 @@ public class BackgroundService extends Service {
 
         startForeground(PERMANENT_NOTIFICATION_ID, mPermanentNotification);
         return START_STICKY;
-
     }
-
 
     /**
      * Called by the system to notify a Service that it is no longer used and is being removed.  The
@@ -126,6 +136,9 @@ public class BackgroundService extends Service {
         Utility.setServiceStarted(this, false);
         mMessenger = null;
         Log.i(LOG_TAG, "Bg Service Destroyed.");
+
+        // stop the server
+        mServer.stop();
     }
 
     @Override

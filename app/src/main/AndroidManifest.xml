@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="mobilefs.seminar.pdfs.service">
 
-    <!-- For file picker -->
+    <uses-permission android:name="android.permission.INTERNET"/>s
+    <!-- Permission for file picker -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Permission to get the ipdress-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:allowBackup="true"
@@ -49,11 +52,20 @@
             </intent-filter>
         </activity>
 
-        <service android:name="mfs.service.BackgroundService"></service>
+        <service android:name="mfs.service.BackgroundService" />
 
         <activity
             android:name="mfs.ui.EnterNameActivity"
             android:label="@string/title_activity_enter_name"
+            android:parentActivityName="mfs.ui.HomeActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="mfs.ui.HomeActivity" />
+        </activity>
+        <activity
+            android:name="mfs.ui.MemberDetailsActivity"
+            android:label="@string/title_activity_memeber_details"
             android:parentActivityName="mfs.ui.HomeActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

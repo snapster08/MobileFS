@@ -1,8 +1,5 @@
 package mfs.ui;
 
-/**
- * Created by barry on 4/19/16.
- */
 public class Constants {
 
     public final static String TAG_ACTION_TYPE = "action_type";
@@ -17,7 +14,8 @@ public class Constants {
 
 
     // Loader identifiers
-    public final static int LOADER_MEMBERS_LIST = 0;
+    public final static int LOADER_MEMBER_LIST = 0;
+    public final static int LOADER_FILE_LIST = 1;
 
 
 }

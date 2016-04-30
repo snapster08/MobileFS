@@ -16,6 +16,8 @@ public interface NodeManager {
 
     List<MobileNode> getCurrentNodes();
 
+    MobileNode getNode(String id);
+
     //void addNodeChangeListener();
 
     //void removeNodeChangeListener();

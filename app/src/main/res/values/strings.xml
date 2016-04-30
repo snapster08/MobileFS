@@ -31,5 +31,6 @@
     <!-- Menu Options -->
     <string name="action_stop_server">Stop Server</string>
     <string name="action_start_server">Start Server</string>
+    <string name="title_activity_memeber_details">MemeberDetailsActivity</string>
 
 </resources>

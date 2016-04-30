@@ -6,9 +6,6 @@ import java.util.List;
 
 import mfs.node.MobileNode;
 
-/**
- * Created by bala on 4/11/16.
- */
 public interface Filesystem {
 
     MobileFile openFile(String path, MobileNode node);

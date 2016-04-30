@@ -6,9 +6,6 @@ import android.preference.PreferenceManager;
 
 import mobilefs.seminar.pdfs.service.R;
 
-/**
- * Created by barry on 4/21/16.
- */
 public class Utility {
     public static void setServiceStarted(Context context, boolean isStarted)
     {
