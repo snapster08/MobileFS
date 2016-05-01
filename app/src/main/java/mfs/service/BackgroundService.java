@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -64,8 +65,12 @@ public class BackgroundService extends Service {
     @Override
     public void onCreate() {
 
+        // initialize the service accessor
         ServiceAccessor.setContext(getApplicationContext());
+        ServiceAccessor.setMyId(Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID));
 
+        // initialize the permanent notification
         Utility.setServiceStarted(this, true);
         mMessenger = new Messenger(new RequestHandler());
         mPermanentNotification = buildPermanentNotification();

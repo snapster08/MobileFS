@@ -82,7 +82,7 @@ public class CreateGroupActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(mNodeManager.createGroup()) {
+        if(mNodeManager.createGroup(mUserName)) {
             mCreateInfoLayout.setVisibility(View.VISIBLE);
             mCreateStatusTextView.setText(R.string.label_createGroupSuccess);
             createInfoTextView.setText(mNodeManager.generateJoiningLink());

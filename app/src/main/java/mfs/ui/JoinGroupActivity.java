@@ -2,9 +2,12 @@ package mfs.ui;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,7 +23,6 @@ import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.util.ArrayList;
 
-import mfs.node.NodeManager;
 import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
 
@@ -31,8 +33,10 @@ public class JoinGroupActivity extends AppCompatActivity {
     EditText groupLinkEditText;
     Button joinButton;
     Button pickFilesButton;
+    ProgressDialog joinProgressDialog;
+    boolean isJoining;
+    AsyncTask joinTask;
     String mUserName;
-    NodeManager mNodeManager = ServiceAccessor.getNodeManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,19 +56,36 @@ public class JoinGroupActivity extends AppCompatActivity {
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // join group code goes here.......
-                if(mNodeManager.joinGroup(groupLinkEditText.getText().toString())) {
-                    // if successful go back to the main screen
-                    Intent upIntent = new Intent(JoinGroupActivity.this, HomeActivity.class);
-                    upIntent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_JOIN_GROUP_DONE);
-                    upIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                    startActivity(upIntent);
-                }
-                else
-                {
-                    Snackbar.make(joinButton, "Join Failed.", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
+
+                isJoining = true;
+                // show a progress dialog
+                joinProgressDialog = new ProgressDialog(JoinGroupActivity.this);
+                joinProgressDialog.setIndeterminate(true);
+                joinProgressDialog.setMessage("Joining...");
+                joinProgressDialog.setCancelable(false);
+                joinProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
+                        new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        JoinGroupActivity.this.onJoinComplete(false);
+                    }
+                });
+                joinProgressDialog.show();
+                // start join action
+                final String groupLink = groupLinkEditText.getText().toString();
+                joinTask = new AsyncTask<Void, Void, Boolean>() {
+                    @Override
+                    protected Boolean doInBackground(Void... params) {
+                        Log.i(LOG_TAG, "Starting Join Task.");
+                        return ServiceAccessor.getNodeManager().joinGroup(groupLink, mUserName);
+                    }
+
+                    @Override
+                    protected void onPostExecute(Boolean success) {
+                        JoinGroupActivity.this.onJoinComplete(success);
+                    }
+                }.execute();
+
 
             }
         });
@@ -127,6 +148,41 @@ public class JoinGroupActivity extends AppCompatActivity {
                 // Do something with the URI
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(isJoining) {
+            joinProgressDialog.dismiss();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(isJoining) {
+            joinProgressDialog.show();
+        }
+    }
+
+    void onJoinComplete(Boolean success) {
+        if(success) {
+            joinProgressDialog.dismiss();
+            // go back to the main screen
+            Intent upIntent = new Intent(JoinGroupActivity.this, HomeActivity.class);
+            upIntent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_JOIN_GROUP_DONE);
+            upIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            startActivity(upIntent);
+        }
+        else
+        {
+            joinProgressDialog.dismiss();
+            joinTask.cancel(true);
+            Snackbar.make(joinButton, "Join Failed.", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
+        isJoining = false;
     }
 
 }

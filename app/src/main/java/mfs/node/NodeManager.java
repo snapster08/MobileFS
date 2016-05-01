@@ -6,9 +6,9 @@ public interface NodeManager {
 
     boolean isConnectedToGroup();
 
-    boolean createGroup();
+    boolean createGroup(String username);
 
-    boolean joinGroup(String groupLink);
+    boolean joinGroup(String groupLink, String username);
 
     void exitGroup();
 

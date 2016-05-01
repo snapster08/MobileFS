@@ -12,6 +12,16 @@ public class  ServiceAccessor {
 
     private static NodeManager sNodeManager;
     private static PermissionManager sPermissionManager;
+    private static String sMyId;
+    private static Context sContext;
+
+    public static String getMyId() {
+        return sMyId;
+    }
+
+    public static void setMyId(String myId) {
+        ServiceAccessor.sMyId = myId;
+    }
 
     public static Context getContext() {
         return sContext;
@@ -20,8 +30,6 @@ public class  ServiceAccessor {
     public static void setContext(Context sContext) {
         ServiceAccessor.sContext = sContext;
     }
-
-    private static Context sContext;
 
     public static NodeManager getNodeManager() {
         if(sNodeManager == null) {
