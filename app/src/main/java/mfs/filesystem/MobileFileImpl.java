@@ -9,10 +9,22 @@ public class MobileFileImpl implements MobileFile {
     String originalPath;
     boolean isCached;
     String cachedFileName;
+    int type;
 
-    public MobileFileImpl(Filesystem owningFilesystem, String originalPath) {
+    public MobileFileImpl(Filesystem owningFilesystem, String originalPath, int type) {
         this.owningFilesystem = owningFilesystem;
         this.originalPath = originalPath;
+        this.type = type;
+    }
+
+    public static class Type {
+        public static final int file = 0;
+        public static final int directory = 1;
+    }
+
+    @Override
+    public int getType() {
+        return type;
     }
 
     @Override
@@ -38,7 +50,7 @@ public class MobileFileImpl implements MobileFile {
 
     @Override
     public String getOriginalPath() {
-        return null;
+        return originalPath;
     }
 
     @Override
@@ -47,5 +59,12 @@ public class MobileFileImpl implements MobileFile {
             return new File(ServiceAccessor.getCacheDirectory(), cachedFileName);
         }
         return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MobileFile &&
+                this.owningFilesystem.equals(((MobileFile) o).getOwningFilesystem()) &&
+                this.getOriginalPath().equals(((MobileFile) o).getOriginalPath());
     }
 }

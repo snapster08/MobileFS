@@ -7,7 +7,7 @@
 
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="mfs.ui.NameAndFilesActivity"
-    tools:showIn="@layout/activity_nameAndFiles">
+    tools:showIn="@layout/activity_name_and_files">
 
     <Space
         android:id="@+id/space_enterName"

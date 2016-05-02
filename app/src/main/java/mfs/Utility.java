@@ -173,16 +173,25 @@ public class Utility {
     }
 
 
-    public static JSONObject getFileSystemStructure(String path, boolean includeHidden) {
+    public static JSONObject getFilesystemMetadata(String path, boolean includeHidden) {
+        /*
+        entry structure
+        {
+         "name" :"directoryname"
+         "type" : "directory/file"
+         "contents" : [<contents>]
+        }
+        */
 
         File root = new File(path);
-        // return null if the path is not a directory
-        if(!root.isDirectory()) {
-            return null;
-        }
-
-        JSONObject fileSystemStructure = new JSONObject();
+        JSONObject directory = new JSONObject();
         try {
+            // terminating condition
+            if(!root.isDirectory()) {
+                directory.put(MessageContract.Field.FIELD_FS_FILE_NAME, root.getName());
+                directory.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "file");
+                return directory;
+            }
             File [] fileList = root.listFiles();
             JSONArray fileSystemArray = new JSONArray();
             for (File currentFile: fileList) {
@@ -192,19 +201,32 @@ public class Utility {
                 }
                 // for files just add the name
                 if(currentFile.isFile()){
-                    fileSystemArray.put(currentFile.getName());
+                    JSONObject file = new JSONObject();
+                    file.put(MessageContract.Field.FIELD_FS_FILE_NAME, currentFile.getName());
+                    file.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "file");
+                    fileSystemArray.put(file);
                     continue;
                 }
-                // for directories create a JSONObject {"directoryname" : [<contents>]}
-                fileSystemArray.put(getFileSystemStructure(currentFile.getAbsolutePath(), includeHidden));
+
+                // for directories
+                JSONObject file = new JSONObject();
+                file.put(MessageContract.Field.FIELD_FS_FILE_NAME, currentFile.getName());
+                file.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "directory");
+                fileSystemArray.put(file);
+
+                //fileSystemArray.put(getFilesystemMetadata(currentFile.getAbsolutePath(), includeHidden));
+
             }
-            fileSystemStructure.put(root.getName(), fileSystemArray);
+            directory.put(MessageContract.Field.FIELD_FS_FILE_NAME, root.getName());
+            directory.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "directory");
+            directory.put(MessageContract.Field.FIELD_FS_FILE_CONTENTS,
+                    fileSystemArray);
         }
         catch (JSONException e) {
-            Log.i(LOG_TAG, "Improper format", e);
+            Log.i(LOG_TAG, "JSONException in getFilesystemMetadata()", e);
             return null;
         }
-        return fileSystemStructure;
+        return directory;
     }
 
 }

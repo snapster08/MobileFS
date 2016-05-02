@@ -9,4 +9,6 @@ public interface MobileFile {
     String getOriginalPath();
 
     File getLocalFileObject();
+
+    int getType();
 }

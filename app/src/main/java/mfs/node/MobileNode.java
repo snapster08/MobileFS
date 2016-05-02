@@ -12,6 +12,8 @@ public interface MobileNode {
 
     boolean isConnected();
 
+    boolean connect();
+
     Filesystem getBackingFilesystem();
 
     // void kickOutOfGroup();

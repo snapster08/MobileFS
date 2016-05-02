@@ -33,5 +33,11 @@ public class MessageContract {
 
         public final static String FIELD_FS_ROOT = "FS_ROOT";
         public final static String FIELD_FS_METADATA = "FS_METADATA";
+
+        public final static String FIELD_FS_FILE_NAME = "FS_FILE_NAME";
+        public final static String FIELD_FS_FILE_TYPE = "FS_FILE_TYPE";
+        public final static String FIELD_FS_FILE_CONTENTS = "FS_FILE_CONTENTS";
+
+
     }
 }

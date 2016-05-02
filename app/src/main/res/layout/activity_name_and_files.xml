@@ -21,6 +21,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_nameAndFiles" />
+    <include layout="@layout/content_name_and_files" />
 
 </android.support.design.widget.CoordinatorLayout>

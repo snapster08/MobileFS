@@ -14,6 +14,8 @@ public interface Filesystem {
 
     boolean isOpen(MobileFile file);
 
-    List<String> ls(String path);
+    List<MobileFile> getOpenFiles();
+
+    List<MobileFile> ls(String path);
 
 }

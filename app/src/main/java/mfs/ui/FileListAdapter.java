@@ -7,9 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import mfs.filesystem.MobileFile;
+import mfs.filesystem.MobileFileImpl;
 import mobilefs.seminar.pdfs.service.R;
 
 public class FileListAdapter extends ArrayAdapter<MobileFile> {
@@ -27,9 +29,11 @@ public class FileListAdapter extends ArrayAdapter<MobileFile> {
      */
     public static class ViewHolder {
         public final TextView nameTextView;
+        public final TextView typeTextView;
 
         public ViewHolder(View view) {
             nameTextView = (TextView) view.findViewById(R.id.file_item_name_textView);
+            typeTextView = (TextView) view.findViewById(R.id.file_item_type_textView);
         }
     }
 
@@ -53,7 +57,17 @@ public class FileListAdapter extends ArrayAdapter<MobileFile> {
         else {
             viewHolder = (ViewHolder)view.getTag();
         }
-        viewHolder.nameTextView.setText(getItem(position).getOriginalPath());
+        MobileFile mFile = getItem(position);
+        File file = new File(mFile.getOriginalPath());
+        viewHolder.nameTextView.setText(file.getName());
+        switch (mFile.getType()) {
+            case MobileFileImpl.Type.file:
+                viewHolder.typeTextView.setText("file");
+            case MobileFileImpl.Type.directory:
+                viewHolder.typeTextView.setText("directory");
+            default:
+                viewHolder.typeTextView.setText("unknown");
+        }
         return view;
     }
 }

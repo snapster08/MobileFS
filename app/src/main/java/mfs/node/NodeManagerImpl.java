@@ -53,7 +53,7 @@ public class NodeManagerImpl implements NodeManager {
         Log.i(LOG_TAG, "Joining Group: " +groupLink +" with username: "+username);
         // create a join request
         MobileNode node = new MobileNodeImpl(ServiceAccessor.getMyId(),
-                username, groupLink);
+                username, generateJoiningLink());
         String requestBody = Utility.convertNodeToJson(node).toString();
         Message requestMessage = new Message(MessageContract.Type.MSG_JOIN_REQUEST, requestBody);
         // send a join request to link
@@ -68,6 +68,11 @@ public class NodeManagerImpl implements NodeManager {
         Message responseMessage = Utility.convertStringToMessage(response.getResult());
         response.close();
 
+        // if response is failure
+        if(responseMessage.getType() != MessageContract.Type.MSG_JOIN_SUCCESS){
+            return false;
+        }
+
         // add the members in the group to the list
         List<MobileNode> nodeList = Utility.convertJsonToNodeList(responseMessage.getBody());
         for (MobileNode currentNode : nodeList) {
@@ -80,7 +85,7 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void exitGroup() {
-        nodeList = null;
+        nodeList.clear();
         isConnectedToGroup = false;
     }
 
@@ -132,5 +137,4 @@ public class NodeManagerImpl implements NodeManager {
             nodeList.remove(node);
         }
     }
-
 }

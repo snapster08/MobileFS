@@ -32,7 +32,7 @@ public class NameAndFilesActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nameAndFiles);
+        setContentView(R.layout.activity_name_and_files);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         actionType = getIntent().getIntExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_NOTHING);
         switch (actionType){
@@ -128,7 +128,8 @@ public class NameAndFilesActivity extends AppCompatActivity {
             } else {
                 Uri uri = data.getData();
                 Log.i(LOG_TAG, uri.toString());
-                mSelectedFile = uri.toString();
+                // removes the "file://" part int the uri
+                mSelectedFile = uri.toString().substring(7);
             }
         }
     }

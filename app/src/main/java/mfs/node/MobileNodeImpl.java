@@ -18,6 +18,7 @@ public class MobileNodeImpl implements MobileNode {
     private String id;
     private String name;
     private String address;
+    private boolean isConnected;
     private Filesystem backingFilesystem;
 
     public MobileNodeImpl(String id, String name, String address) {
@@ -43,14 +44,15 @@ public class MobileNodeImpl implements MobileNode {
 
     @Override
     public boolean isConnected() {
-        return false;
+        return isConnected;
+    }
+
+    public void  setConnected(boolean isConnected) {
+        this.isConnected =  isConnected;
     }
 
     @Override
-    public Filesystem getBackingFilesystem() {
-        if(backingFilesystem != null) {
-            return backingFilesystem;
-        }
+    public boolean connect() {
         // request filesystem metadata from the node
         Message requestMessage = new Message(MessageContract.Type.MSG_GET_FS_METADATA,
                 "GET FILESYSTEM METADATA");
@@ -59,12 +61,12 @@ public class MobileNodeImpl implements MobileNode {
                 Utility.getPortFromAddress(getAddress()),
                 Utility.convertMessagetoString(requestMessage));
         if(response == null) {
-            return null;
+            return false;
         }
         Message responseMessage = Utility.convertStringToMessage(response.getResult());
         response.close();
         if (responseMessage.getType() != MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS) {
-            return null;
+            return false;
         }
         String root;
         JSONObject metadata;
@@ -75,10 +77,21 @@ public class MobileNodeImpl implements MobileNode {
             metadata = jsonResponse.getJSONObject(MessageContract.Field.FIELD_FS_METADATA);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Unable to parse MSG_GET_FS_METADATA response.", e);
-            return null;
+            return false;
         }
         backingFilesystem = new FilesystemImpl(root, metadata, this);
-        return backingFilesystem;
+        setConnected(true);
+        return true;
+    }
+
+    @Override
+    public Filesystem getBackingFilesystem() {
+        if(isConnected()) {
+            return backingFilesystem;
+        }
+        else {
+            return null;
+        }
     }
 
     @Override

@@ -4,12 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 import mfs.node.MobileNode;
+import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
 
 public class MemberListAdapter extends ArrayAdapter<MobileNode> {
@@ -36,21 +38,30 @@ public class MemberListAdapter extends ArrayAdapter<MobileNode> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view = convertView;
         ViewHolder viewHolder;
 
-        if(view == null) {
-            view = LayoutInflater.from(getContext()).inflate(mResourceId,
+        if(convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(mResourceId,
                     parent, false);
 
-            viewHolder = new ViewHolder(view);
-            view.setTag(viewHolder);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
         }
         else {
-            viewHolder = (ViewHolder)view.getTag();
+            if (convertView.getVisibility() == View.GONE) {
+                convertView.setVisibility(View.VISIBLE);
+                convertView.setLayoutParams(new AbsListView.LayoutParams(-1,-2));
+            }
+            viewHolder = (ViewHolder)convertView.getTag();
         }
-        viewHolder.nameTextView.setText(getItem(position).getName());
-        viewHolder.statusTextView.setText(getItem(position).isConnected()?"Connected":"Disconnected");
-        return view;
+        MobileNode node = getItem(position);
+        // do not display my node in list
+        if (node.getId().equals(ServiceAccessor.getMyId())) {
+            convertView.setLayoutParams(new AbsListView.LayoutParams(-1,1));
+            convertView.setVisibility(View.GONE);
+        }
+        viewHolder.nameTextView.setText(node.getName());
+        viewHolder.statusTextView.setText(node.isConnected()?"Connected":"Disconnected");
+        return convertView;
     }
 }

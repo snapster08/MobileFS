@@ -2,6 +2,9 @@ package mfs.network;
 
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -132,7 +135,7 @@ public class Server {
                 }
                 else {
                     // send failure response
-                    Message response = new Message(MessageContract.Type.MSG_JOIN_FAILURE, null);
+                    Message response = new Message(MessageContract.Type.MSG_JOIN_FAILURE, "");
                     sendResponse(requestSocket, Utility.convertMessagetoString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
                 }
@@ -178,7 +181,34 @@ public class Server {
                 }
                 break;
             case MessageContract.Type.MSG_GET_FS_METADATA:
-                // TODO Implement me
+                String sharedFile = ServiceAccessor.getNodeManager().getSharedFile();
+                if(sharedFile == null) {
+                    // send a failure response
+                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
+                            "Not Sharing any file");
+                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    break;
+                }
+                // response Body
+                JSONObject metadata = Utility.getFilesystemMetadata(sharedFile, false);
+                JSONObject responseBody = new JSONObject();
+                try {
+                    responseBody.put(MessageContract.Field.FIELD_FS_ROOT, sharedFile);
+                    responseBody.put(MessageContract.Field.FIELD_FS_METADATA, metadata);
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "Error building response.", e);
+                    // send a failure response
+                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
+                            "Unable to build response");
+                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    break;
+                }
+                // send response
+                Message metadataResponse = new Message(
+                        MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS,
+                        responseBody.toString());
+
+                sendResponse(requestSocket, Utility.convertMessagetoString(metadataResponse));
                 break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");

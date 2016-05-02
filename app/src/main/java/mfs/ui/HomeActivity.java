@@ -105,7 +105,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // handle click on member, load new activity browse the file structure of member
-                MobileNode node = (MobileNode) mMembersListAdapter.getItem(position);
+                MobileNode node = mMembersListAdapter.getItem(position);
                 // make an intent containing this member info
                 // and pass it to the MemberDetailsActivity
                 Intent detailsIntent = new Intent(HomeActivity.this, MemberDetailsActivity.class);
@@ -121,7 +121,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
 
 //        //To get the filesystem structure
 //        Filesystem fs = ServiceAccessor.getFilesystem();
-//        Log.i(LOG_TAG, fs.getFileSystemStructure(
+//        Log.i(LOG_TAG, fs.getFilesystemMetadata(
 //                Environment.getExternalStorageDirectory().getAbsolutePath()).toString());
 
         Log.i(LOG_TAG, "On Create.");
