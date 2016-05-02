@@ -7,8 +7,7 @@ import mfs.service.ServiceAccessor;
 public class MobileFileImpl implements MobileFile {
     Filesystem owningFilesystem;
     String originalPath;
-    boolean isCached;
-    String cachedFileName;
+    String localFileName;
     int type;
 
     public MobileFileImpl(Filesystem owningFilesystem, String originalPath, int type) {
@@ -32,20 +31,14 @@ public class MobileFileImpl implements MobileFile {
         return owningFilesystem;
     }
 
-    public String getCachedFileName() {
-        return cachedFileName;
+    @Override
+    public String getLocalFileName() {
+        return localFileName;
     }
 
-    public void setCachedFileName(String cachedFileName) {
-        this.cachedFileName = cachedFileName;
-    }
-
-    public boolean isCached() {
-        return isCached;
-    }
-
-    public void setCached(boolean cached) {
-        isCached = cached;
+    @Override
+    public void setLocalFileName(String localFileName) {
+        this.localFileName = localFileName;
     }
 
     @Override
@@ -55,8 +48,8 @@ public class MobileFileImpl implements MobileFile {
 
     @Override
     public File getLocalFileObject() {
-        if(isCached()) {
-            return new File(ServiceAccessor.getCacheDirectory(), cachedFileName);
+        if(localFileName != null) {
+            return new File(ServiceAccessor.getCacheDirectory(), localFileName);
         }
         return null;
     }

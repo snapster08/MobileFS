@@ -159,6 +159,7 @@ public class Server {
 
                 // send the file contents
                 try {
+                    Log.i(LOG_TAG, "Starting to send file: " +requestedFilepath);
                     final int BUFFER_SIZE = 10 * 1024;
                     byte [] buffer = new byte[BUFFER_SIZE];
                     long remainingFileSize = requestedFile.length();
@@ -170,6 +171,7 @@ public class Server {
                         remainingFileSize -= bytesRead;
                     }
                     fileInputStream.close();
+                    Log.i(LOG_TAG, "Done sending file: " +requestedFilepath);
                 }
                 catch (FileNotFoundException e) {
                     Log.e(LOG_TAG, "File Not Found, but this has been checked already.", e);

@@ -185,13 +185,21 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         if(Utility.isServiceStarted(this)) {
             menu.findItem(R.id.action_start_server).setVisible(false);
             menu.findItem(R.id.action_stop_server).setVisible(true);
-            return true;
         }
         else {
             menu.findItem(R.id.action_start_server).setVisible(true);
             menu.findItem(R.id.action_stop_server).setVisible(false);
-            return true;
         }
+
+        if(ServiceAccessor.getNodeManager().isConnectedToGroup()) {
+            menu.findItem(R.id.action_exit_group).setVisible(true);
+        }
+        else {
+            menu.findItem(R.id.action_exit_group).setVisible(false);
+        }
+
+        return true;
+
     }
 
     @Override
@@ -207,6 +215,10 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 startService(new Intent(this,BackgroundService.class));
 //                bindService(new Intent(this,
 //                        BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
+                return true;
+            case R.id.action_exit_group:
+                ServiceAccessor.getNodeManager().exitGroup();
+                refreshMemberList();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

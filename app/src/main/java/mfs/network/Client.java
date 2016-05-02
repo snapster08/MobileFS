@@ -128,10 +128,16 @@ public class Client {
             }
 
             // read the file from socket and store it in a local file
+            Log.i(LOG_TAG, "Starting to receive file: " +fileMetadata[0]);
+
             final int BUFFER_SIZE = 10*1024;
             byte[] buffer = new byte[BUFFER_SIZE];
             InputStream socketInputStream = socket.getInputStream();
-            String cachedFilename = Utility.genHash(fileMetadata[0]);
+            String originFilename = fileMetadata[0];
+            String [] parts = originFilename.split("\\.");
+            String extension = parts[parts.length -1];
+            String cachedFilename = Utility.genHash(originFilename) +"." +extension;
+            Log.i(LOG_TAG, "Storing it as file: " +cachedFilename);
             OutputStream fileOutputStream = new FileOutputStream(
                     ServiceAccessor.getCacheDirectory() +"/" +cachedFilename);
             long remainingFileSize = Long.parseLong(fileMetadata[1]);
@@ -142,6 +148,8 @@ public class Client {
                     remainingFileSize -= bytesRead;
                 }
                 fileOutputStream.close();
+                Log.i(LOG_TAG, "Done receiving file: " +fileMetadata[0]);
+
             }
             catch (IOException e) {
                 Log.e(LOG_TAG, "Did not receive the complete file. Received: " +(Long.parseLong(fileMetadata[1]) - remainingFileSize)

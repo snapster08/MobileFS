@@ -46,26 +46,36 @@ public class FilesystemImpl implements Filesystem {
         return owningNode;
     }
 
-    @Override
-    public MobileFile openFile(String path, MobileNode node) {
-        // check if file is already opened
+    public MobileFile getOpenedFile(String path) {
         for(MobileFile file : getOpenFiles()) {
             if(file.getOriginalPath().equals(path)) {
                 return file;
             }
         }
+        // if file not open already return null
+        return null;
+    }
 
+    @Override
+    public MobileFile openFile(String path) {
+        MobileFile file = getOpenedFile(path);
+        if(file != null) {
+            return file;
+        }
         // else fetch the file
-        Client.Response<File> response = Client.getInstance().executeRequestFile(Utility.getIpFromAddress(node.getAddress()),
-                Utility.getPortFromAddress(node.getAddress()), path);
+        Client.Response<File> response = Client.getInstance().executeRequestFile(
+                Utility.getIpFromAddress(getOwningNode().getAddress()),
+                Utility.getPortFromAddress(getOwningNode().getAddress()),
+                path);
         if(response == null) {
             return null;
         }
         File openedFile = response.getResult();
         response.close();
 
-        MobileFile file = new MobileFileImpl(this, openedFile.getAbsolutePath(),
+        file = new MobileFileImpl(this, path,
                 openedFile.isFile()?MobileFileImpl.Type.file:MobileFileImpl.Type.directory);
+        file.setLocalFileName(openedFile.getName());
         // add the fill to open file list
         openfileList.add(file);
         return file;

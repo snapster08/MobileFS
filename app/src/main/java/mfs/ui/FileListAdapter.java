@@ -63,8 +63,10 @@ public class FileListAdapter extends ArrayAdapter<MobileFile> {
         switch (mFile.getType()) {
             case MobileFileImpl.Type.file:
                 viewHolder.typeTextView.setText("file");
+                break;
             case MobileFileImpl.Type.directory:
                 viewHolder.typeTextView.setText("directory");
+                break;
             default:
                 viewHolder.typeTextView.setText("unknown");
         }

@@ -1,6 +1,7 @@
 package mfs.service;
 
 import android.content.Context;
+import android.os.Environment;
 
 import java.io.File;
 
@@ -16,9 +17,17 @@ public class  ServiceAccessor {
     private static PermissionManager sPermissionManager;
     private static String sMyId;
     private static Context sContext;
+    private static File cachedDirectory;
 
     public static File getCacheDirectory() {
-        return sContext.getFilesDir();
+        if(cachedDirectory != null) {
+            return cachedDirectory;
+        }
+        else {
+            cachedDirectory = new File(Environment.getExternalStorageDirectory(), "MobileFS");
+            cachedDirectory.mkdir();
+            return cachedDirectory;
+        }
     }
 
     public static String getMyId() {

@@ -10,5 +10,9 @@ public interface MobileFile {
 
     File getLocalFileObject();
 
+    void setLocalFileName(String name);
+
+    public String getLocalFileName();
+
     int getType();
 }

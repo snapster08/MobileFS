@@ -2,17 +2,17 @@ package mfs.filesystem;
 
 import java.util.List;
 
-import mfs.node.MobileNode;
-
 public interface Filesystem {
 
-    MobileFile openFile(String path, MobileNode node);
+    MobileFile openFile(String path);
 
     void commitFile(MobileFile fileHandle);
 
     void closeFile(MobileFile fileHandle);
 
     boolean isOpen(MobileFile file);
+
+    MobileFile getOpenedFile(String path);
 
     List<MobileFile> getOpenFiles();
 
