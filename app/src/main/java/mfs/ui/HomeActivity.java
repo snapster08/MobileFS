@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -22,6 +23,7 @@ import android.widget.ListView;
 
 import mfs.Utility;
 import mfs.data.DataContract;
+import mfs.node.MobileNode;
 import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
@@ -35,6 +37,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
     Button mCreateGroupButton;
     ViewGroup mNoGroupLayout;
     FloatingActionButton mFab;
+    SwipeRefreshLayout mSwipeRefreshLayout;
     ListView mMembersListView;
     MemberListAdapter mMembersListAdapter;
     BackgroundServiceConnection mBgServiceConn;
@@ -51,12 +54,13 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         mNoGroupLayout = (LinearLayout) findViewById(R.id.layout_noGroup);
         mFab = (FloatingActionButton) findViewById(R.id.fab_add);
         mMembersListView = (ListView) findViewById(R.id.list_members);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.list_members_SwipeRefresh);
 
         mJoinGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // open the enterName Activity
-                Intent intent = new Intent(HomeActivity.this, EnterNameActivity.class);
+                Intent intent = new Intent(HomeActivity.this, NameAndFilesActivity.class);
                 intent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_JOIN_GROUP);
                 startActivity(intent);
             }
@@ -66,7 +70,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onClick(View v) {
                 // open the enterName Activity
-                Intent intent = new Intent(HomeActivity.this, EnterNameActivity.class);
+                Intent intent = new Intent(HomeActivity.this, NameAndFilesActivity.class);
                 intent.putExtra(Constants.TAG_ACTION_TYPE, Constants.ACTION_CREATE_GROUP);
                 startActivity(intent);
             }
@@ -84,8 +88,16 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         // initialize a loader for the mMembersListView
         getLoaderManager().initLoader(Constants.LOADER_MEMBER_LIST, null, this);
 
+        // initialize the SwipeRefresh
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshMemberList();
+            }
+        });
+
         // create a adapter for the members list
-        mMembersListAdapter = new MemberListAdapter(this, null, 0);
+        mMembersListAdapter = new MemberListAdapter(this, R.layout.member_list_item);
         mMembersListView.setAdapter(mMembersListAdapter);
 
         // set up on click on the memberlist
@@ -93,10 +105,12 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // handle click on member, load new activity browse the file structure of member
-                Cursor memberCursor = (Cursor) mMembersListAdapter.getItem(position);
-
+                MobileNode node = (MobileNode) mMembersListAdapter.getItem(position);
                 // make an intent containing this member info
                 // and pass it to the MemberDetailsActivity
+                Intent detailsIntent = new Intent(HomeActivity.this, MemberDetailsActivity.class);
+                detailsIntent.putExtra(Constants.TAG_MEMBER_ID, node.getId());
+                startActivity(detailsIntent);
             }
         });
 
@@ -138,17 +152,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
 //        bindService(new Intent(this,
 //                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
 
-        // check if connected to a group and display the appropriate elements
-        if(!mNodeManager.isConnectedToGroup())  {
-            mNoGroupLayout.setVisibility(View.VISIBLE);
-            mMembersListView.setVisibility(View.INVISIBLE);
-            mFab.setVisibility(View.INVISIBLE);
-        }
-        else {
-            mMembersListView.setVisibility(View.VISIBLE);
-            mFab.setVisibility(View.VISIBLE);
-            mNoGroupLayout.setVisibility(View.INVISIBLE);
-        }
+        refreshMemberList();
     }
 
     @Override
@@ -209,6 +213,29 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    void refreshMemberList() {
+        // check if connected to a group and display the appropriate elements
+        mSwipeRefreshLayout.setRefreshing(true);
+        if(!mNodeManager.isConnectedToGroup())  {
+            mNoGroupLayout.setVisibility(View.VISIBLE);
+            mMembersListView.setVisibility(View.INVISIBLE);
+            mSwipeRefreshLayout.setVisibility(View.INVISIBLE);
+            mFab.setVisibility(View.INVISIBLE);
+        }
+        else {
+            mMembersListView.setVisibility(View.VISIBLE);
+            mSwipeRefreshLayout.setVisibility(View.VISIBLE);
+            mFab.setVisibility(View.VISIBLE);
+            mNoGroupLayout.setVisibility(View.INVISIBLE);
+            mMembersListAdapter.clear();
+            if(mNodeManager.getCurrentNodes() != null) {
+                Log.i(LOG_TAG, "Adding nodes to member list.");
+                mMembersListAdapter.addAll(mNodeManager.getCurrentNodes());
+            }
+        }
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
+
     /**
      * Instantiate and return a new Loader for the given ID.
      *
@@ -232,7 +259,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.i(LOG_TAG, "Load Finished for loader: " +loader.getId());
         switch (loader.getId()) {
             case Constants.LOADER_MEMBER_LIST:
-                mMembersListAdapter.swapCursor(data);
+               // mMembersListAdapter.swapCursor(data);
                 break;
             default:
                 Log.e(LOG_TAG, "Unknown Loader Finished.");
@@ -243,7 +270,7 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<Cursor> loader) {
         switch (loader.getId()) {
             case Constants.LOADER_MEMBER_LIST:
-                mMembersListAdapter.swapCursor(null);
+                //mMembersListAdapter.swapCursor(null);
                 break;
             default:
                 Log.e(LOG_TAG, "Unknown Loader Reset.");

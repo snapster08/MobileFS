@@ -2,6 +2,8 @@ package mfs.service;
 
 import android.content.Context;
 
+import java.io.File;
+
 import mfs.node.NodeManager;
 import mfs.node.NodeManagerImpl;
 import mfs.permission.PermissionManager;
@@ -14,6 +16,10 @@ public class  ServiceAccessor {
     private static PermissionManager sPermissionManager;
     private static String sMyId;
     private static Context sContext;
+
+    public static File getCacheDirectory() {
+        return sContext.getFilesDir();
+    }
 
     public static String getMyId() {
         return sMyId;

@@ -1,6 +1,5 @@
 package mfs.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import mfs.filesystem.MobileFile;
 import mobilefs.seminar.pdfs.service.R;
@@ -17,12 +16,10 @@ public class FileListAdapter extends ArrayAdapter<MobileFile> {
 
     static final String LOG_TAG = FileListAdapter.class.getSimpleName();
 
-    Context mContext;
-    int itemResourceId;
-    List<MobileFile> files;
-
-    public FileListAdapter(Context context, int resourceId, List<MobileFile> data) {
-        super(context, resourceId, data);
+    int mResourceId;
+    public FileListAdapter(Context context, int resourceId) {
+        super(context, 0, new ArrayList<MobileFile>());
+        mResourceId = resourceId;
     }
 
     /**
@@ -49,16 +46,14 @@ public class FileListAdapter extends ArrayAdapter<MobileFile> {
         ViewHolder viewHolder;
 
         if(view == null) {
-            LayoutInflater inflater = ((Activity)mContext).getLayoutInflater();
-            view = inflater.inflate(itemResourceId, parent, false);
-
+            view = LayoutInflater.from(getContext()).inflate(mResourceId, parent, false);
             viewHolder = new ViewHolder(view);
             view.setTag(viewHolder);
         }
         else {
             viewHolder = (ViewHolder)view.getTag();
         }
-        viewHolder.nameTextView.setText(files.get(position).getOriginalPath());
+        viewHolder.nameTextView.setText(getItem(position).getOriginalPath());
         return view;
     }
 }

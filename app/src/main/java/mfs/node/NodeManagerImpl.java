@@ -20,8 +20,17 @@ public class NodeManagerImpl implements NodeManager {
     private final static String LOG_TAG = NodeManagerImpl.class.getSimpleName();
 
     boolean isConnectedToGroup = false;
+    String sharedFile;
     List<MobileNode> nodeList = new LinkedList<>();
     HashMap<String, MobileNode> nodeMap = new HashMap<>();
+
+    public String getSharedFile() {
+        return sharedFile;
+    }
+
+    public void setSharedFile(String sharedFile) {
+        this.sharedFile = sharedFile;
+    }
 
     @Override
     public boolean isConnectedToGroup() {
@@ -45,27 +54,34 @@ public class NodeManagerImpl implements NodeManager {
         // create a join request
         MobileNode node = new MobileNodeImpl(ServiceAccessor.getMyId(),
                 username, groupLink);
-        String requestBody = Utility.nodeToJson(node).toString();
+        String requestBody = Utility.convertNodeToJson(node).toString();
         Message requestMessage = new Message(MessageContract.Type.MSG_JOIN_REQUEST, requestBody);
         // send a join request to link
         Client.Response<String> response = Client.getInstance()
-                .executeRequestString(Utility.getIpFromLink(groupLink),
-                    Utility.getPortFromLink(groupLink), Utility.convertMessagetoString(requestMessage));
+                .executeRequestString(Utility.getIpFromAddress(groupLink),
+                    Utility.getPortFromAddress(groupLink), Utility.convertMessagetoString(requestMessage));
         if(response == null) {
             return false;
         }
 
         Log.i(LOG_TAG, "Received Response: " +response.getResult());
+        Message responseMessage = Utility.convertStringToMessage(response.getResult());
         response.close();
-        // add the members in the group to the list
 
+        // add the members in the group to the list
+        List<MobileNode> nodeList = Utility.convertJsonToNodeList(responseMessage.getBody());
+        for (MobileNode currentNode : nodeList) {
+            addNode(currentNode);
+        }
+        Log.i(LOG_TAG, "Current Nodes: " +Utility.convertNodeListToJson(getCurrentNodes()));
         isConnectedToGroup = true;
         return true;
     }
 
     @Override
     public void exitGroup() {
-
+        nodeList = null;
+        isConnectedToGroup = false;
     }
 
     @Override
@@ -101,17 +117,20 @@ public class NodeManagerImpl implements NodeManager {
         return nodeMap.get(id);
     }
 
-    private void addNode(MobileNode node)
+    @Override
+    public void addNode(MobileNode node)
     {
         if(!nodeMap.containsKey(node.getId())) {
             nodeMap.put(node.getId(), node);
             nodeList.add(node);
         }
     }
-    private void removeNode(MobileNode node) {
+
+    public void removeNode(MobileNode node) {
         if(nodeMap.containsKey(node.getId())) {
             nodeMap.remove(node.getId());
             nodeList.remove(node);
         }
     }
+
 }

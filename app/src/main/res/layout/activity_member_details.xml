@@ -21,6 +21,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_memeber_details" />
+    <include layout="@layout/content_member_details" />
 
 </android.support.design.widget.CoordinatorLayout>

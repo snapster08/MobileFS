@@ -5,6 +5,8 @@ public class Constants {
     public final static String TAG_ACTION_TYPE = "action_type";
     public final static String TAG_NAME = "name";
 
+    public final static String TAG_MEMBER_ID = "member_id";
+    public final static String TAG_SELECTED_FILE = "selected_file";
 
     public final static int ACTION_NOTHING = 0;
     public final static int ACTION_CREATE_GROUP = 1;

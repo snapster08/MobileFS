@@ -24,8 +24,10 @@ public class CreateGroupActivity extends AppCompatActivity {
 
     Button copyButton;
     Button homeButton;
-    TextView createInfoTextView;
+    TextView mCreateInfoTextView;
+    TextView mFileInfoTextView;
     String mUserName;
+    String mSelectedFile;
     TextView mCreateStatusTextView;
     RelativeLayout mCreateInfoLayout;
     NodeManager mNodeManager = ServiceAccessor.getNodeManager();
@@ -40,9 +42,14 @@ public class CreateGroupActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mUserName = getIntent().getStringExtra(Constants.TAG_NAME);
+        mSelectedFile = getIntent().getStringExtra(Constants.TAG_SELECTED_FILE);
+        // set the shared file
+        ServiceAccessor.getNodeManager().setSharedFile(mSelectedFile);
 
-        createInfoTextView = (TextView) findViewById(R.id.textView_createInfo);
+        mCreateInfoTextView = (TextView) findViewById(R.id.textView_createInfo);
         mCreateStatusTextView = (TextView) findViewById(R.id.textView_creatGroupStatus);
+        mFileInfoTextView = (TextView) findViewById(R.id.textViewFileInfo);
+        mFileInfoTextView.setText("Sharing file: " +mSelectedFile);
         mCreateInfoLayout = (RelativeLayout) findViewById(R.id.layout_groupInfo);
         copyButton = (Button) findViewById(R.id.button_copyGroupInfo);
         homeButton = (Button) findViewById(R.id.button_homeFromCreateGroup);
@@ -55,7 +62,7 @@ public class CreateGroupActivity extends AppCompatActivity {
                 // Gets a handle to the clipboard service.
                 ClipboardManager clipboard = (ClipboardManager)
                         getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Group Link", createInfoTextView.getText().toString());
+                ClipData clip = ClipData.newPlainText("Group Link", mCreateInfoTextView.getText().toString());
                 // Set the clipboard's primary clip.
                 clipboard.setPrimaryClip(clip);
 
@@ -85,7 +92,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         if(mNodeManager.createGroup(mUserName)) {
             mCreateInfoLayout.setVisibility(View.VISIBLE);
             mCreateStatusTextView.setText(R.string.label_createGroupSuccess);
-            createInfoTextView.setText(mNodeManager.generateJoiningLink());
+            mCreateInfoTextView.setText(mNodeManager.generateJoiningLink());
         }
         else {
             mCreateInfoLayout.setVisibility(View.INVISIBLE);

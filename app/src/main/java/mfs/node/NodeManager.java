@@ -18,6 +18,13 @@ public interface NodeManager {
 
     MobileNode getNode(String id);
 
+    void addNode(MobileNode node);
+
+    String getSharedFile();
+
+    void setSharedFile(String sharedFile);
+
+
     //void addNodeChangeListener();
 
     //void removeNodeChangeListener();

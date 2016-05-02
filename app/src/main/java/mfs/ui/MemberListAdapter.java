@@ -1,21 +1,24 @@
 package mfs.ui;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import mfs.data.DataContract;
+import java.util.ArrayList;
+
+import mfs.node.MobileNode;
 import mobilefs.seminar.pdfs.service.R;
 
-public class MemberListAdapter extends CursorAdapter {
+public class MemberListAdapter extends ArrayAdapter<MobileNode> {
     static final String LOG_TAG = MemberListAdapter.class.getSimpleName();
 
-    public MemberListAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    int mResourceId;
+    public MemberListAdapter(Context context, int resourceId) {
+        super(context, 0, new ArrayList<MobileNode>());
+        mResourceId = resourceId;
     }
 
     /**
@@ -30,38 +33,24 @@ public class MemberListAdapter extends CursorAdapter {
             statusTextView = (TextView) view.findViewById(R.id.member_item_status_textView);
         }
     }
-    /**
-     * Makes a new view to hold the data pointed to by cursor.
-     *
-     * @param context Interface to application's global information
-     * @param cursor  The cursor from which to get the data. The cursor is already
-     *                moved to the correct position.
-     * @param parent  The parent to which the new view is attached to
-     * @return the newly created view.
-     */
+
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view = LayoutInflater.from(context).inflate(R.layout.member_list_item, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        view.setTag(viewHolder);
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View view = convertView;
+        ViewHolder viewHolder;
+
+        if(view == null) {
+            view = LayoutInflater.from(getContext()).inflate(mResourceId,
+                    parent, false);
+
+            viewHolder = new ViewHolder(view);
+            view.setTag(viewHolder);
+        }
+        else {
+            viewHolder = (ViewHolder)view.getTag();
+        }
+        viewHolder.nameTextView.setText(getItem(position).getName());
+        viewHolder.statusTextView.setText(getItem(position).isConnected()?"Connected":"Disconnected");
         return view;
-    }
-
-    /**
-     * Bind an existing view to the data pointed to by cursor
-     *
-     * @param view    Existing view, returned earlier by newView
-     * @param context Interface to application's global information
-     * @param cursor  The cursor from which to get the data. The cursor is already
-     */
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        ViewHolder viewHolder = (ViewHolder) view.getTag();
-        viewHolder.nameTextView.setText(
-                cursor.getString(
-                        cursor.getColumnIndex(
-                                DataContract.MembersEntry.COLUMN_NAME)));
-
-        // statusTextView is default for now
     }
 }

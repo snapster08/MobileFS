@@ -4,7 +4,12 @@ import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -97,32 +102,33 @@ public class Server {
     }
 
     void handleRequest(Socket requestSocket) {
-        String requestBody;
+        String requesMessage;
         try {
             // read the message
             DataInputStream in = new DataInputStream(requestSocket.getInputStream());
-            requestBody = in.readUTF();
+            requesMessage = in.readUTF();
         }
         catch (IOException e) {
             Log.e(LOG_TAG, "IOException while trying read from request socket.", e);
             return;
         }
-        Log.i(LOG_TAG, "Received Request: "+requestBody);
+        Log.i(LOG_TAG, "Received Request: "+requesMessage);
         NodeManager nm = ServiceAccessor.getNodeManager();
         // convert the response to message object and handle it
-        Message request = Utility.convertStringToMessage(requestBody);
+        Message request = Utility.convertStringToMessage(requesMessage);
         switch (request.getType()) {
             case MessageContract.Type.MSG_JOIN_REQUEST:
                 if(nm.isConnectedToGroup()) {
+                    // add this node to my list
+                    MobileNode newNode = Utility.convertJsonToNode(request.getBody());
+                    ServiceAccessor.getNodeManager().addNode(newNode);
                     // send the member details in response
                     List<MobileNode> currentNodes = nm.getCurrentNodes();
-                    String responseBody = Utility.nodeListToJson(currentNodes).toString();
+                    String responseBody = Utility.convertNodeListToJson(currentNodes).toString();
                     Message response = new Message(MessageContract.Type.MSG_JOIN_SUCCESS, responseBody);
                     sendResponse(requestSocket, Utility.convertMessagetoString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
                     // TODO send new node info to all the currentNodes
-
-
                 }
                 else {
                     // send failure response
@@ -130,6 +136,49 @@ public class Server {
                     sendResponse(requestSocket, Utility.convertMessagetoString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
                 }
+                break;
+            case MessageContract.Type.MSG_GET_FILE:
+                String requestedFilepath = request.getBody();
+
+                // get the file object and send the file meta-data if the file is present
+                File requestedFile = new File(requestedFilepath);
+                if(!requestedFile.isFile()) {
+                    // send a failure response
+                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FILE_FAILURE,
+                            "File doesn't exist");
+                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    break;
+                }
+                // send success response containing the file meta data
+                Message successResponse = new Message(MessageContract.Type.MSG_GET_FILE_SUCCESS,
+                        Utility.convertFileMetadataToJson(requestedFile));
+                sendResponse(requestSocket, Utility.convertMessagetoString(successResponse));
+
+                // send the file contents
+                try {
+                    final int BUFFER_SIZE = 10 * 1024;
+                    byte [] buffer = new byte[BUFFER_SIZE];
+                    long remainingFileSize = requestedFile.length();
+                    InputStream fileInputStream = new FileInputStream(requestedFile);
+                    OutputStream socketOutputStream = requestSocket.getOutputStream();
+                    while(remainingFileSize > 0) {
+                        int bytesRead = fileInputStream.read(buffer);
+                        socketOutputStream.write(buffer, 0, bytesRead);
+                        remainingFileSize -= bytesRead;
+                    }
+                    fileInputStream.close();
+                }
+                catch (FileNotFoundException e) {
+                    Log.e(LOG_TAG, "File Not Found, but this has been checked already.", e);
+                    break;
+                }
+                catch (IOException e) {
+                    Log.e(LOG_TAG, "Unable to get requestsocket input stream. Socket closed already??", e);
+                    break;
+                }
+                break;
+            case MessageContract.Type.MSG_GET_FS_METADATA:
+                // TODO Implement me
                 break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");
@@ -141,7 +190,6 @@ public class Server {
         try {
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF(response);
-            out.close();
             return true;
         }
         catch (IOException e) {

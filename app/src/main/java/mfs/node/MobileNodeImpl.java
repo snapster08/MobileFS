@@ -1,14 +1,26 @@
 package mfs.node;
 
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import mfs.Utility;
 import mfs.filesystem.Filesystem;
+import mfs.filesystem.FilesystemImpl;
+import mfs.network.Client;
+import mfs.network.Message;
+import mfs.network.MessageContract;
 
 public class MobileNodeImpl implements MobileNode {
+    private static final String LOG_TAG = MobileNodeImpl.class.getSimpleName();
+
     private String id;
     private String name;
     private String address;
     private Filesystem backingFilesystem;
 
-    MobileNodeImpl(String id, String name, String address) {
+    public MobileNodeImpl(String id, String name, String address) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -36,11 +48,41 @@ public class MobileNodeImpl implements MobileNode {
 
     @Override
     public Filesystem getBackingFilesystem() {
+        if(backingFilesystem != null) {
+            return backingFilesystem;
+        }
+        // request filesystem metadata from the node
+        Message requestMessage = new Message(MessageContract.Type.MSG_GET_FS_METADATA,
+                "GET FILESYSTEM METADATA");
+        Client.Response<String> response = Client.getInstance().executeRequestString(
+                Utility.getIpFromAddress(getAddress()),
+                Utility.getPortFromAddress(getAddress()),
+                Utility.convertMessagetoString(requestMessage));
+        if(response == null) {
+            return null;
+        }
+        Message responseMessage = Utility.convertStringToMessage(response.getResult());
+        response.close();
+        if (responseMessage.getType() != MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS) {
+            return null;
+        }
+        String root;
+        JSONObject metadata;
+        // parse the response
+        try {
+            JSONObject jsonResponse = new JSONObject(responseMessage.getBody());
+            root = jsonResponse.getString(MessageContract.Field.FIELD_FS_ROOT);
+            metadata = jsonResponse.getJSONObject(MessageContract.Field.FIELD_FS_METADATA);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Unable to parse MSG_GET_FS_METADATA response.", e);
+            return null;
+        }
+        backingFilesystem = new FilesystemImpl(root, metadata, this);
         return backingFilesystem;
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof MobileNode && ((MobileNode)o).getId() == this.getId();
+        return o instanceof MobileNode && ((MobileNode)o).getId().equals(this.getId());
     }
 }
