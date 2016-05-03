@@ -10,8 +10,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -170,7 +172,8 @@ public class Server {
                 }
                 // send success response containing the file meta data
                 Message successResponse = new Message(MessageContract.Type.MSG_GET_FILE_SUCCESS,
-                        Utility.convertFileMetadataToJson(requestedFile));
+                        Utility.convertFileMetadataToJson(requestedFile.getAbsolutePath(),
+                                requestedFile.length()));
                 sendResponse(requestSocket, Utility.convertMessageToString(successResponse));
 
                 // send the file contents
@@ -228,8 +231,77 @@ public class Server {
 
                 sendResponse(requestSocket, Utility.convertMessageToString(metadataResponse));
                 break;
+            case MessageContract.Type.MSG_COMMIT_REQUEST:
+                // TODO check if this is a shared file
+                // parse request containing the file meta-data
+                try {
+                    String[] fileMetadata = Utility.convertJsonToFileMetadata(request.getBody());
+                    if (fileMetadata == null) {
+                        requestSocket.close();
+                        break;
+                    }
+
+                    // send the commit accept response
+                    Message commitAcceptResponse = new Message(MessageContract.Type.MSG_COMMIT_ACCEPT,
+                            "");
+                    sendResponse(requestSocket, Utility.convertMessageToString(commitAcceptResponse));
+
+                    // deleting file
+                    File localFile = new File(fileMetadata[0]);
+                    localFile.delete();
+
+                    // get the file and write to a temporary file
+                    Log.i(LOG_TAG, "Starting to receive file: " + fileMetadata[0]);
+                    File receivedFile = new File(fileMetadata[0]);
+                    receivedFile.getParent();
+                    String tempFilepath = receivedFile.getParent() +"/" +Utility.genHash(fileMetadata[0]);
+                    Log.i(LOG_TAG, "Writing file: " + fileMetadata[0] +" to tempfile: "+ tempFilepath);
+                    final int BUFFER_SIZE = 10 * 1024;
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    InputStream socketInputStream = requestSocket.getInputStream();
+                    OutputStream fileOutputStream = new FileOutputStream(tempFilepath);
+                    long remainingFileSize = Long.parseLong(fileMetadata[1]);
+                    try {
+                        while (remainingFileSize > 0) {
+                            int bytesRead = socketInputStream.read(buffer);
+                            fileOutputStream.write(buffer, 0, bytesRead);
+                            remainingFileSize -= bytesRead;
+                        }
+                        fileOutputStream.close();
+                        Log.i(LOG_TAG, "Done writing file: " + fileMetadata[0] +" to tempfile: "+ tempFilepath);
+
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Did not receive the complete file. Received: " + (Long.parseLong(fileMetadata[1]) - remainingFileSize)
+                                + " Remaining: " + remainingFileSize, e);
+                        break;
+                    }
+
+                    // delete original file and rename the newly received file
+                    receivedFile.delete();
+                    File tempFileObj = new File(tempFilepath);
+                    tempFileObj.renameTo(receivedFile);
+                    Log.i(LOG_TAG, "Renamed tempfile as: " + receivedFile.getAbsolutePath());
+                }
+                catch (InterruptedIOException e) {
+                    Log.e(LOG_TAG, "Read timed-out.", e);
+                    break;
+                }
+                catch (IOException e) {
+                    Log.e(LOG_TAG, "IOException.", e);
+                    break;
+                }
+                // send commit completed message
+                Message commitCompleteMessage = new Message(MessageContract.Type.MSG_COMMIT_COMPLETE, "");
+                sendResponse(requestSocket, Utility.convertMessageToString(commitCompleteMessage));
+                break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");
+                try {
+                    requestSocket.close();
+                }
+                catch (IOException e) {
+                    Log.e(LOG_TAG, "IOException.", e);
+                }
         }
     }
 

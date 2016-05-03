@@ -4,12 +4,15 @@ import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 import mfs.Utility;
+import mfs.filesystem.Filesystem;
+import mfs.filesystem.MobileFile;
 import mfs.network.Client;
 import mfs.network.Message;
 import mfs.network.MessageContract;
@@ -123,15 +126,22 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Override
-    public void addNode(MobileNode node)
+    public void addNode(MobileNode newNode)
     {
-        if(!nodeMap.containsKey(node.getId())) {
-            nodeMap.put(node.getId(), node);
-            nodeList.add(node);
+        if(!nodeMap.containsKey(newNode.getId())) {
+            nodeMap.put(newNode.getId(), newNode);
+            nodeList.add(newNode);
         }
+        else {
+            // update the current node
+            MobileNode node = nodeMap.get(newNode.getId());
+            node.setName(newNode.getName());
+            node.setAddress(newNode.getAddress());
+        }
+
     }
 
-    public void removeNode(MobileNode node) {
+    private void removeNode(MobileNode node) {
         if(nodeMap.containsKey(node.getId())) {
             nodeMap.remove(node.getId());
             nodeList.remove(node);
@@ -142,4 +152,18 @@ public class NodeManagerImpl implements NodeManager {
         nodeList.clear();
         nodeMap.clear();
     }
+
+    @Override
+    public List<MobileFile> getAllOpenFiles() {
+        List<MobileNode> nodes = getCurrentNodes();
+        List<MobileFile> fileList= new ArrayList<>();
+        for(MobileNode node : nodes) {
+            Filesystem fs = node.getBackingFilesystem();
+            if (fs != null) {
+                fileList.addAll(fs.getOpenFiles());
+            }
+        }
+        return fileList;
+    }
+
 }

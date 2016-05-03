@@ -146,11 +146,11 @@ public class Utility {
         }
     }
 
-    public static String convertFileMetadataToJson(File file) {
+    public static String convertFileMetadataToJson(String fullPath, long fileSize) {
         try{
             JSONObject json = new JSONObject();
-            json.put(MessageContract.Field.FIELD_FILE_PATH, file.getAbsolutePath());
-            json.put(MessageContract.Field.FIELD_FILE_SIZE, file.length());
+            json.put(MessageContract.Field.FIELD_FILE_PATH, fullPath);
+            json.put(MessageContract.Field.FIELD_FILE_SIZE, fileSize);
             return json.toString();
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Unable convert Node to JSON", e);

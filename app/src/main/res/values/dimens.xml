@@ -10,6 +10,7 @@
 
     <!-- Textiew Padding-->
     <dimen name="textView_padding">12dp</dimen>
+    <dimen name="textView_padding_half">6dp</dimen>
 
 
 </resources>

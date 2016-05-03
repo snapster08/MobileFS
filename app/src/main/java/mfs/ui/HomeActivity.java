@@ -222,16 +222,17 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_view_open_files:
+                Intent ViewOpenFilesIntent = new Intent(HomeActivity.this, OpenFilesActivity.class);
+                startActivity(ViewOpenFilesIntent);
+                return true;
             case R.id.action_stop_server:
                 // this will stop the service provided all the clients are unbound
                 stopService(new Intent(this,BackgroundService.class));
-//                unbindService(mBgServiceConn);
                 return true;
             case R.id.action_start_server:
                 // this will start the service if it is was not started already
                 startService(new Intent(this,BackgroundService.class));
-//                bindService(new Intent(this,
-//                        BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
                 return true;
             case R.id.action_exit_group:
                 ServiceAccessor.getNodeManager().exitGroup();

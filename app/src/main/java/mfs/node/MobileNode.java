@@ -10,6 +10,10 @@ public interface MobileNode {
 
     String getAddress();
 
+    void setName(String name);
+
+    void setAddress(String address);
+
     boolean isConnected();
 
     boolean connect();

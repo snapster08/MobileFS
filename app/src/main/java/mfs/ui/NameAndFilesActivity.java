@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -45,8 +46,10 @@ public class NameAndFilesActivity extends AppCompatActivity {
                 break;
         }
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+        ActionBar ab = getSupportActionBar();
+        if(ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
         nextButton = (Button) findViewById(R.id.button_name_next);
         nameEditText = (EditText) findViewById(R.id.editText_enterName);
         pickFilesButton = (Button) findViewById(R.id.button_pickFiles);

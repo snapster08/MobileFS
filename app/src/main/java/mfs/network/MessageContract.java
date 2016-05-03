@@ -18,7 +18,13 @@ public class MessageContract {
         public final static int MSG_GET_FILE_SUCCESS = 301;
         public final static int MSG_GET_FILE_FAILURE = 302;
 
-        public final static int MSG_NEW_NODE_INFO = 400;
+        // types for commit file operation
+        public final static int MSG_COMMIT_REQUEST = 400;
+        public final static int MSG_COMMIT_ACCEPT = 401;
+        public final static int MSG_COMMIT_REJECT = 402;
+        public final static int MSG_COMMIT_COMPLETE = 403;
+
+        public final static int MSG_NEW_NODE_INFO = 500;
 
     }
 

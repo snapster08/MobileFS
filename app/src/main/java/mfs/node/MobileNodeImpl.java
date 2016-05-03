@@ -43,6 +43,17 @@ public class MobileNodeImpl implements MobileNode {
     }
 
     @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+
+    @Override
     public boolean isConnected() {
         return isConnected;
     }
@@ -79,7 +90,12 @@ public class MobileNodeImpl implements MobileNode {
             Log.e(LOG_TAG, "Unable to parse MSG_GET_FS_METADATA response.", e);
             return false;
         }
-        backingFilesystem = new FilesystemImpl(root, metadata, this);
+        if (backingFilesystem != null && backingFilesystem.getRootDirectory().equals(root)) {
+            backingFilesystem.setFilesystemMetadata(metadata);
+        } else {
+            // TODO close all open files before updating the filesystem
+            backingFilesystem = new FilesystemImpl(root, metadata, this);
+        }
         setConnected(true);
         return true;
     }

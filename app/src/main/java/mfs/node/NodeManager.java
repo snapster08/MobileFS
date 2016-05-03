@@ -2,6 +2,8 @@ package mfs.node;
 
 import java.util.List;
 
+import mfs.filesystem.MobileFile;
+
 public interface NodeManager {
 
     boolean isConnectedToGroup();
@@ -24,8 +26,9 @@ public interface NodeManager {
 
     void setSharedFile(String sharedFile);
 
+    List<MobileFile> getAllOpenFiles();
 
-    //void addNodeChangeListener();
+        //void addNodeChangeListener();
 
     //void removeNodeChangeListener();
 }

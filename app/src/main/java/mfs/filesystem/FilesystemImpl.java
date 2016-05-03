@@ -6,12 +6,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
 import mfs.Utility;
 import mfs.network.Client;
+import mfs.network.Message;
 import mfs.network.MessageContract;
 import mfs.node.MobileNode;
 
@@ -21,13 +28,25 @@ public class FilesystemImpl implements Filesystem {
     private JSONObject filesystemMetadata;
     private String rootDirectory;
     private MobileNode owningNode;
-
     List<MobileFile> openfileList = new LinkedList<>();
+
+    public void setFilesystemMetadata(JSONObject filesystemMetadata) {
+        this.filesystemMetadata = filesystemMetadata;
+    }
+
+    public void setRootDirectory(String rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
+
+    public void setOwningNode(MobileNode owningNode) {
+        this.owningNode = owningNode;
+    }
 
     @Override
     public List<MobileFile> getOpenFiles() {
         return openfileList;
     }
+
     public String getRootDirectory() {
         return rootDirectory;
     }
@@ -42,6 +61,7 @@ public class FilesystemImpl implements Filesystem {
         this.owningNode = owningNode;
     }
 
+    @Override
     public MobileNode getOwningNode() {
         return owningNode;
     }
@@ -82,13 +102,82 @@ public class FilesystemImpl implements Filesystem {
     }
 
     @Override
-    public void commitFile(MobileFile fileHandle) {
+    public boolean commitFile(MobileFile fileHandle) {
+        // send commit request
+        Message commitRequest = new Message(MessageContract.Type.MSG_COMMIT_REQUEST,
+                Utility.convertFileMetadataToJson(fileHandle.getOriginalPath(),
+                        fileHandle.getLocalFileObject().length()));
+        MobileNode node = fileHandle.getOwningFilesystem().getOwningNode();
+        Client.Response<String> response = Client.getInstance()
+                .executeRequestString(Utility.getIpFromAddress(node.getAddress()),
+                        Utility.getPortFromAddress(node.getAddress()),
+                        Utility.convertMessageToString(commitRequest));
+        if(response == null) {
+            return false;
+        }
+        Log.i(LOG_TAG, "Received Response: " +response.getResult());
+        Message responseMessage = Utility.convertStringToMessage(response.getResult());
+        // check if response is failure
+        if(responseMessage == null || responseMessage.getType() != MessageContract.Type.MSG_COMMIT_ACCEPT){
+            return false;
+        }
 
+        // send the file contents
+        try {
+            File localFile = fileHandle.getLocalFileObject();
+            Log.i(LOG_TAG, "Starting to send file: " +localFile.getAbsolutePath());
+            final int BUFFER_SIZE = 10 * 1024;
+            byte [] buffer = new byte[BUFFER_SIZE];
+            long remainingFileSize = localFile.length();
+            InputStream fileInputStream = new FileInputStream(localFile);
+            OutputStream socketOutputStream = response.getSocket().getOutputStream();
+            while(remainingFileSize > 0) {
+                int bytesRead = fileInputStream.read(buffer);
+                socketOutputStream.write(buffer, 0, bytesRead);
+                remainingFileSize -= bytesRead;
+            }
+            fileInputStream.close();
+            Log.i(LOG_TAG, "Done sending file: " +localFile.getAbsolutePath());
+        }
+        catch (FileNotFoundException e) {
+            Log.e(LOG_TAG, "File Not Found, but this has been checked already.", e);
+            return false;
+        }
+        catch (IOException e) {
+            Log.e(LOG_TAG, "Unable to get requestsocket input stream. Socket closed already??", e);
+            return false;
+        }
+
+        // read commit completion response
+        try {
+            DataInputStream in = new DataInputStream(response.getSocket().getInputStream());
+            String completionResponse = in.readUTF();
+            Log.i(LOG_TAG, "Received: " +completionResponse);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error while receiving commit complete response", e);
+            return false;
+        }
+        // close the file
+        return closeFile(fileHandle);
     }
 
     @Override
-    public void closeFile(MobileFile fileHandle) {
+    public boolean closeFile(MobileFile fileHandle) {
+        if(fileHandle == null || fileHandle.getLocalFileName() == null) {
+            return false;
+        }
 
+        // delete the local cache
+        File localFile = fileHandle.getLocalFileObject();
+        if(localFile == null) {
+            return false;
+        }
+        if(!localFile.delete()) {
+            return false;
+        }
+        fileHandle.setLocalFileName(null);
+        // remove file from openFile list
+        return getOpenFiles().remove(fileHandle);
     }
 
     @Override

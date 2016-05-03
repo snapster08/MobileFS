@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,7 +30,7 @@ import mobilefs.seminar.pdfs.service.R;
 public class MemberDetailsActivity extends AppCompatActivity {
     public final static String LOG_TAG = MemberDetailsActivity.class.getSimpleName();
 
-    ListView mFileListVIew;
+    ListView mFileListView;
     SwipeRefreshLayout mSwipeRefreshLayout;
     FileListAdapter mFileListAdapter;
     ProgressDialog connectionProgressDialog;
@@ -46,16 +47,21 @@ public class MemberDetailsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mMember = ServiceAccessor.getNodeManager().getNode(
                 getIntent().getStringExtra(Constants.TAG_MEMBER_ID));
-        toolbar.setTitle(mMember.getName() +"\'s Files");
+        if(toolbar != null) {
+            toolbar.setTitle(mMember.getName() +"\'s Files");
+        }
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ab = getSupportActionBar();
+        if(ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
 
-        mFileListVIew = (ListView) findViewById(R.id.list_files);
+        mFileListView = (ListView) findViewById(R.id.list_files);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.list_memberDetails_SwipeRefresh);
 
         // create a adapter for the file list
         mFileListAdapter = new FileListAdapter(this, R.layout.file_list_item);
-        mFileListVIew.setAdapter(mFileListAdapter);
+        mFileListView.setAdapter(mFileListAdapter);
 
         // initialize the SwipeRefresh
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -66,14 +72,14 @@ public class MemberDetailsActivity extends AppCompatActivity {
         });
 
         // set up onClick on the file list
-        mFileListVIew.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mFileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // open if it is a file
                 final MobileFile selectedFile = mFileListAdapter.getItem(position);
                 final Filesystem filesystem = mMember.getBackingFilesystem();
                 if(selectedFile.getType() == MobileFileImpl.Type.directory) {
-                    Snackbar.make(mFileListVIew, "Cannot open directories.", Snackbar.LENGTH_LONG)
+                    Snackbar.make(mFileListView, "Cannot open directories.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
                 else {
@@ -198,7 +204,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
         }
         else {
             connectTask.cancel(true);
-            Snackbar.make(mFileListVIew, "Connection Failed.", Snackbar.LENGTH_LONG)
+            Snackbar.make(mFileListView, "Connection Failed.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
         isConnecting = false;
@@ -220,7 +226,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
         else
         {
             openFileTask.cancel(true);
-            Snackbar.make(mFileListVIew, "Unable to Open File", Snackbar.LENGTH_LONG)
+            Snackbar.make(mFileListView, "Unable to Open File", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
         isOpeningFile = false;
