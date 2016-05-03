@@ -88,6 +88,22 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void exitGroup() {
+        // send leave group message to everyone
+        for(MobileNode node : getCurrentNodes()) {
+            if(node.getId() != ServiceAccessor.getMyId()) {
+                Message leaveGroupMessage = new Message(MessageContract.Type.MSG_LEAVE, ServiceAccessor.getMyId());
+                Client.getInstance().sendMessage(
+                        Utility.getIpFromAddress(node.getAddress()),
+                        Utility.getPortFromAddress(node.getAddress()),
+                        Utility.convertMessageToString(leaveGroupMessage)
+                );
+            }
+        }
+        // close all my open file
+        List<MobileFile> allOpenFiles = getAllOpenFiles();
+        for(MobileFile file : allOpenFiles) {
+            file.getOwningFilesystem().closeFile(file);
+        }
         clearNodes();
         isConnectedToGroup = false;
     }
@@ -141,10 +157,14 @@ public class NodeManagerImpl implements NodeManager {
 
     }
 
-    private void removeNode(MobileNode node) {
+    @Override
+    public void removeNode(MobileNode node) {
         if(nodeMap.containsKey(node.getId())) {
             nodeMap.remove(node.getId());
             nodeList.remove(node);
+        }
+        else {
+            Log.i(LOG_TAG, "Trying to remove node id: " +node.getId() +" name: " +node.getName());
         }
     }
 

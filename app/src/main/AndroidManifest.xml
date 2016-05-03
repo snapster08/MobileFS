@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="mfs.ui.HomeActivity"
+            android:name="mfs.ui.activities.HomeActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,22 +25,22 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="mfs.ui.JoinGroupActivity"
+            android:name="mfs.ui.activities.JoinGroupActivity"
             android:label="@string/title_activity_join_group"
-            android:parentActivityName="mfs.ui.NameAndFilesActivity"
+            android:parentActivityName="mfs.ui.activities.NameAndFilesActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="mfs.ui.HomeActivity" />
+                android:value="mfs.ui.activities.HomeActivity" />
         </activity>
         <activity
-            android:name="mfs.ui.CreateGroupActivity"
+            android:name="mfs.ui.activities.CreateGroupActivity"
             android:label="@string/title_activity_create_group"
-            android:parentActivityName="mfs.ui.NameAndFilesActivity"
+            android:parentActivityName="mfs.ui.activities.NameAndFilesActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="mfs.ui.HomeActivity" />
+                android:value="mfs.ui.activities.HomeActivity" />
         </activity>
 
         <!-- File Picker Activity -->
@@ -58,31 +58,31 @@
         <service android:name="mfs.service.BackgroundService" />
 
         <activity
-            android:name="mfs.ui.NameAndFilesActivity"
+            android:name="mfs.ui.activities.NameAndFilesActivity"
             android:label="@string/title_activity_enter_name"
-            android:parentActivityName="mfs.ui.HomeActivity"
+            android:parentActivityName="mfs.ui.activities.HomeActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="mfs.ui.HomeActivity" />
+                android:value="mfs.ui.activities.HomeActivity" />
         </activity>
         <activity
-            android:name="mfs.ui.MemberDetailsActivity"
+            android:name="mfs.ui.activities.MemberDetailsActivity"
             android:label="@string/title_activity_member_details"
-            android:parentActivityName="mfs.ui.HomeActivity"
+            android:parentActivityName="mfs.ui.activities.HomeActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="mfs.ui.HomeActivity" />
+                android:value="mfs.ui.activities.HomeActivity" />
         </activity>
         <activity
-            android:name="mfs.ui.OpenFilesActivity"
+            android:name="mfs.ui.activities.OpenFilesActivity"
             android:label="@string/title_activity_open_files"
-            android:parentActivityName="mfs.ui.HomeActivity"
+            android:parentActivityName="mfs.ui.activities.HomeActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="mfs.ui.HomeActivity" />
+                android:value="mfs.ui.activities.HomeActivity" />
         </activity>
     </application>
 

@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -13,18 +13,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.io.File;
 import java.util.List;
 
+import mfs.Utility;
 import mfs.filesystem.Filesystem;
 import mfs.filesystem.MobileFile;
 import mfs.filesystem.MobileFileImpl;
 import mfs.node.MobileNode;
 import mfs.service.ServiceAccessor;
+import mfs.ui.Constants;
+import mfs.ui.adapters.FileListAdapter;
 import mobilefs.seminar.pdfs.service.R;
 
 public class MemberDetailsActivity extends AppCompatActivity {
@@ -220,7 +222,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
             Log.i(LOG_TAG, "Opening file: " +file.getAbsoluteFile());
             Intent openFileIntent = new Intent();
             openFileIntent.setAction(android.content.Intent.ACTION_VIEW);
-            openFileIntent.setDataAndType(Uri.fromFile(file),getMimeType(file.getAbsolutePath()));
+            openFileIntent.setDataAndType(Uri.fromFile(file), Utility.getMimeType(file.getAbsolutePath()));
             startActivity(openFileIntent);
         }
         else
@@ -232,15 +234,4 @@ public class MemberDetailsActivity extends AppCompatActivity {
         isOpeningFile = false;
     }
 
-    private String getMimeType(String url)
-    {
-        String parts[]=url.split("\\.");
-        String extension=parts[parts.length-1];
-        String type = null;
-        if (extension != null) {
-            MimeTypeMap mime = MimeTypeMap.getSingleton();
-            type = mime.getMimeTypeFromExtension(extension);
-        }
-        return type;
-    }
 }

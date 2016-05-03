@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.app.LoaderManager;
 import android.content.ClipData;
@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -33,6 +34,8 @@ import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
 import mfs.service.BackgroundServiceConnection;
 import mfs.service.ServiceAccessor;
+import mfs.ui.Constants;
+import mfs.ui.adapters.MemberListAdapter;
 import mobilefs.seminar.pdfs.service.R;
 
 public class HomeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -235,8 +238,20 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 startService(new Intent(this,BackgroundService.class));
                 return true;
             case R.id.action_exit_group:
-                ServiceAccessor.getNodeManager().exitGroup();
-                refreshMemberList();
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        Log.i(LOG_TAG, "Starting Exit Task.");
+                        ServiceAccessor.getNodeManager().exitGroup();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshMemberList();
+                            }
+                        });
+                        return null;
+                    }
+                }.execute();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -260,6 +275,8 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             mMembersListAdapter.clear();
             if(mNodeManager.getCurrentNodes() != null) {
                 Log.i(LOG_TAG, "Adding nodes to member list.");
+                Log.i(LOG_TAG, "Current Nodes: "
+                        +Utility.convertNodeListToJson(mNodeManager.getCurrentNodes()));
                 mMembersListAdapter.addAll(mNodeManager.getCurrentNodes());
             }
         }

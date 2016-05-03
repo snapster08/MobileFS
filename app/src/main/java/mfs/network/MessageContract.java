@@ -8,7 +8,7 @@ public class MessageContract {
         public final static int MSG_JOIN_SUCCESS = 101;
         public final static int MSG_JOIN_FAILURE = 102;
 
-        // types for get file operation
+        // types for get FS INFO operation
         public final static int MSG_GET_FS_METADATA = 200;
         public final static int MSG_GET_FS_METADATA_SUCCESS = 201;
         public final static int MSG_GET_FS_METADATA_FAILURE = 302;
@@ -25,6 +25,9 @@ public class MessageContract {
         public final static int MSG_COMMIT_COMPLETE = 403;
 
         public final static int MSG_NEW_NODE_INFO = 500;
+
+        // types for leave operation
+        public final static int MSG_LEAVE = 600;
 
     }
 

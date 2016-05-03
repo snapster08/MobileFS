@@ -38,6 +38,7 @@
             android:layout_weight="1"
             android:layout_marginLeft="@dimen/textView_padding"
             android:layout_marginRight="@dimen/textView_padding_half"
+            android:focusable="false"
             android:background="@color/openFileListButtonColor"
             android:text="Commit"/>
         <Button
@@ -47,6 +48,7 @@
             android:layout_weight="1"
             android:layout_marginLeft="@dimen/textView_padding_half"
             android:layout_marginRight="@dimen/textView_padding"
+            android:focusable="false"
             android:background="@color/openFileListButtonColor"
             android:text="Close"/>
     </LinearLayout>

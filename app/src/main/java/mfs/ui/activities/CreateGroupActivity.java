@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -14,8 +14,13 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+
 import mfs.node.NodeManager;
 import mfs.service.ServiceAccessor;
+import mfs.ui.Constants;
 import mobilefs.seminar.pdfs.service.R;
 
 
@@ -49,6 +54,9 @@ public class CreateGroupActivity extends AppCompatActivity {
         mSelectedFile = getIntent().getStringExtra(Constants.TAG_SELECTED_FILE);
         // set the shared file
         ServiceAccessor.getNodeManager().setSharedFile(mSelectedFile);
+        List<File> selectedFileList = new LinkedList<File>();
+        selectedFileList.add(new File(mSelectedFile));
+        ServiceAccessor.getPermissionManager().initializeSharedFiles(selectedFileList);
 
         mCreateInfoTextView = (TextView) findViewById(R.id.textView_createInfo);
         mCreateStatusTextView = (TextView) findViewById(R.id.textView_creatGroupStatus);

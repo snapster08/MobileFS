@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -227,6 +228,18 @@ public class Utility {
             return null;
         }
         return directory;
+    }
+
+    public static String getMimeType(String url)
+    {
+        String parts[]=url.split("\\.");
+        String extension=parts[parts.length-1];
+        String type = null;
+        if (extension != null) {
+            MimeTypeMap mime = MimeTypeMap.getSingleton();
+            type = mime.getMimeTypeFromExtension(extension);
+        }
+        return type;
     }
 
 }

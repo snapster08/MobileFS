@@ -15,7 +15,7 @@ import android.util.Log;
 import mfs.Utility;
 import mfs.network.Server;
 import mfs.network.ServerContract;
-import mfs.ui.HomeActivity;
+import mfs.ui.activities.HomeActivity;
 import mobilefs.seminar.pdfs.service.R;
 
 public class BackgroundService extends Service {
@@ -115,16 +115,17 @@ public class BackgroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(LOG_TAG, "Bg Service onStartCommand().");
 
-        final String action = intent.getAction();
-        if(action != null){
-            switch (action) {
-                case ACTION_EXIT:
-                    Log.i(LOG_TAG, "Exiting Bg Service.");
-                    stopSelf();
-                    break;
+        if(intent != null) {
+            final String action = intent.getAction();
+            if(action != null){
+                switch (action) {
+                    case ACTION_EXIT:
+                        Log.i(LOG_TAG, "Exiting Bg Service.");
+                        stopSelf();
+                        break;
+                }
             }
         }
-
         startForeground(PERMANENT_NOTIFICATION_ID, mPermanentNotification);
         return START_STICKY;
     }

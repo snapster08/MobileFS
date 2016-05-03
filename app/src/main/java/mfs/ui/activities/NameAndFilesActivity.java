@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -21,6 +21,7 @@ import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.util.ArrayList;
 
+import mfs.ui.Constants;
 import mobilefs.seminar.pdfs.service.R;
 
 

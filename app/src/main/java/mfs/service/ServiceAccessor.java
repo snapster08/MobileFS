@@ -8,7 +8,7 @@ import java.io.File;
 import mfs.node.NodeManager;
 import mfs.node.NodeManagerImpl;
 import mfs.permission.PermissionManager;
-import mfs.permission.PermissionMnagerImpl;
+import mfs.permission.PermissionManagerImpl;
 
 public class  ServiceAccessor {
     public final static String LOG_TAG = ServiceAccessor.class.getSimpleName();
@@ -55,7 +55,7 @@ public class  ServiceAccessor {
 
     public static PermissionManager getPermissionManager() {
         if(sPermissionManager == null) {
-            sPermissionManager = new PermissionMnagerImpl();
+            sPermissionManager = new PermissionManagerImpl();
         }
         return sPermissionManager;
     }

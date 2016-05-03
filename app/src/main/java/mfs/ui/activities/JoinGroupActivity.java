@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -14,7 +14,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+
 import mfs.service.ServiceAccessor;
+import mfs.ui.Constants;
 import mobilefs.seminar.pdfs.service.R;
 
 public class JoinGroupActivity extends AppCompatActivity {
@@ -68,6 +73,9 @@ public class JoinGroupActivity extends AppCompatActivity {
 
                 // set the shared file
                 ServiceAccessor.getNodeManager().setSharedFile(mSelectedFile);
+                List<File> selectedFileList = new LinkedList<File>();
+                selectedFileList.add(new File(mSelectedFile));
+                ServiceAccessor.getPermissionManager().initializeSharedFiles(selectedFileList);
 
                 // start join action
                 final String groupLink = groupLinkEditText.getText().toString();
@@ -75,6 +83,7 @@ public class JoinGroupActivity extends AppCompatActivity {
                     @Override
                     protected Boolean doInBackground(Void... params) {
                         Log.i(LOG_TAG, "Starting Join Task.");
+                        // update the permission manager with the files shared
                         return ServiceAccessor.getNodeManager().joinGroup(groupLink, mUserName);
                     }
 

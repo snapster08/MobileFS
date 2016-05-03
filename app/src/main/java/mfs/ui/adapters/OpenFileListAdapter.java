@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import mfs.filesystem.MobileFile;
 import mfs.node.MobileNode;
+import mfs.ui.activities.OpenFilesActivity;
 import mobilefs.seminar.pdfs.service.R;
 
 public class OpenFileListAdapter extends ArrayAdapter<MobileFile> {

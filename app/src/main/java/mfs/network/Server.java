@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import mfs.Utility;
+import mfs.filesystem.Filesystem;
+import mfs.filesystem.MobileFile;
 import mfs.node.MobileNode;
 import mfs.node.NodeManager;
 import mfs.service.ServiceAccessor;
@@ -118,17 +120,17 @@ public class Server {
             return;
         }
         Log.i(LOG_TAG, "Received Request: "+requesMessage);
-        NodeManager nm = ServiceAccessor.getNodeManager();
+        NodeManager nodeManager = ServiceAccessor.getNodeManager();
         // convert the response to message object and handle it
         Message request = Utility.convertStringToMessage(requesMessage);
         switch (request.getType()) {
             case MessageContract.Type.MSG_JOIN_REQUEST:
-                if(nm.isConnectedToGroup()) {
+                if(nodeManager.isConnectedToGroup()) {
                     // add this node to my list
                     MobileNode newNode = Utility.convertJsonToNode(request.getBody());
                     ServiceAccessor.getNodeManager().addNode(newNode);
                     // send the member details in response
-                    List<MobileNode> currentNodes = nm.getCurrentNodes();
+                    List<MobileNode> currentNodes = nodeManager.getCurrentNodes();
                     String responseBody = Utility.convertNodeListToJson(currentNodes).toString();
                     Message response = new Message(MessageContract.Type.MSG_JOIN_SUCCESS, responseBody);
                     sendResponse(requestSocket, Utility.convertMessageToString(response));
@@ -151,8 +153,10 @@ public class Server {
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
                 }
                 break;
+
+
             case MessageContract.Type.MSG_NEW_NODE_INFO:
-                if(nm.isConnectedToGroup()) {
+                if(nodeManager.isConnectedToGroup()) {
                     // add this node to my list
                     MobileNode newNode = Utility.convertJsonToNode(request.getBody());
                     ServiceAccessor.getNodeManager().addNode(newNode);
@@ -293,6 +297,33 @@ public class Server {
                 // send commit completed message
                 Message commitCompleteMessage = new Message(MessageContract.Type.MSG_COMMIT_COMPLETE, "");
                 sendResponse(requestSocket, Utility.convertMessageToString(commitCompleteMessage));
+                break;
+
+            case MessageContract.Type.MSG_LEAVE:
+                MobileNode leavingNode = nodeManager.getNode(request.getBody());
+                Log.i(LOG_TAG, "In MSG_LEAVE " + Utility.convertNodeToJson(leavingNode));
+                // close all files of this node
+                Filesystem leavingFS = leavingNode.getBackingFilesystem();
+                if(leavingFS != null) {
+                    List<MobileFile> leavingFiles = leavingFS.getOpenFiles();
+                    for(MobileFile file: leavingFiles) {
+                        leavingFS.closeFile(file);
+                    }
+                }
+
+                // remove this node from the list
+                nodeManager.removeNode(leavingNode);
+
+                Log.i(LOG_TAG, "Current Nodes after remove in leave: "
+                        +Utility.convertNodeListToJson(nodeManager.getCurrentNodes()));
+
+
+                try {
+                    requestSocket.close();
+                }catch (IOException e) {
+                    Log.e(LOG_TAG, "IOException.", e);
+                }
+                Log.i(LOG_TAG, "Leaving MSG_LEAVE");
                 break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");

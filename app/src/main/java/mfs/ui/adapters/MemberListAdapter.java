@@ -1,4 +1,4 @@
-package mfs.ui;
+package mfs.ui.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;

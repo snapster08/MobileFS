@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="mfs.ui.CreateGroupActivity"
+    tools:context="mfs.ui.activities.CreateGroupActivity"
     tools:showIn="@layout/activity_create_group">
 
     <TextView

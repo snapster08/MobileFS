@@ -22,6 +22,8 @@ public interface NodeManager {
 
     void addNode(MobileNode node);
 
+    void removeNode(MobileNode node);
+
     String getSharedFile();
 
     void setSharedFile(String sharedFile);

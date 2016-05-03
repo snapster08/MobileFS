@@ -1,7 +1,9 @@
-package mfs.ui;
+package mfs.ui.activities;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -10,10 +12,16 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.io.File;
+
+import mfs.Utility;
 import mfs.filesystem.MobileFile;
 import mfs.service.ServiceAccessor;
+import mfs.ui.adapters.OpenFileListAdapter;
 import mobilefs.seminar.pdfs.service.R;
 
 public class OpenFilesActivity extends AppCompatActivity {
@@ -44,6 +52,27 @@ public class OpenFilesActivity extends AppCompatActivity {
         mOpenFileListAdapter = new OpenFileListAdapter(this, R.layout.open_file_list_item);
         mOpenFileListView.setAdapter(mOpenFileListAdapter);
 
+        // set-up on click on the list
+        mOpenFileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MobileFile clickedFile = mOpenFileListAdapter.getItem(position);
+                File localFile = clickedFile.getLocalFileObject();
+                if(localFile == null) {
+                    Snackbar.make(mOpenFileListView, "Unable to Open File.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    return;
+                }
+
+                // start intent to open file
+                Log.i(LOG_TAG, "Opening file: " +localFile.getAbsoluteFile());
+                Intent openFileIntent = new Intent();
+                openFileIntent.setAction(android.content.Intent.ACTION_VIEW);
+                openFileIntent.setDataAndType(Uri.fromFile(localFile),
+                        Utility.getMimeType(localFile.getAbsolutePath()));
+                startActivity(openFileIntent);
+            }
+        });
         // initialize the SwipeRefresh
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -78,7 +107,7 @@ public class OpenFilesActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
-    void onFileClosed(MobileFile file) {
+    public void onFileClosed(MobileFile file) {
         if(file.getOwningFilesystem().closeFile(file)) {
             mOpenFileListAdapter.remove(file);
             mOpenFileListAdapter.notifyDataSetChanged();
@@ -92,7 +121,7 @@ public class OpenFilesActivity extends AppCompatActivity {
 
     }
 
-    void onFileCommitted(final MobileFile file) {
+    public void onFileCommitted(final MobileFile file) {
 
         isCommitting = true;
         // show a progress dialog
