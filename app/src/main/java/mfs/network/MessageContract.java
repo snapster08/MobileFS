@@ -17,6 +17,9 @@ public class MessageContract {
         public final static int MSG_GET_FILE = 300;
         public final static int MSG_GET_FILE_SUCCESS = 301;
         public final static int MSG_GET_FILE_FAILURE = 302;
+
+        public final static int MSG_NEW_NODE_INFO = 400;
+
     }
 
 

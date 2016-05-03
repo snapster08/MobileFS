@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -54,6 +55,11 @@ public class NameAndFilesActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (nameEditText.getText().toString().equals("")) {
+                    Snackbar.make(nextButton, "Please enter a name.", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    return;
+                }
                 switch (actionType) {
                     case Constants.ACTION_CREATE_GROUP: {
                         Intent intent = new Intent(NameAndFilesActivity.this, CreateGroupActivity.class);

@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
     public final static String LOG_TAG = MemberDetailsActivity.class.getSimpleName();
 
     ListView mFileListVIew;
+    SwipeRefreshLayout mSwipeRefreshLayout;
     FileListAdapter mFileListAdapter;
     ProgressDialog connectionProgressDialog;
     ProgressDialog openProgressDialog;
@@ -42,17 +44,26 @@ public class MemberDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_member_details);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mMember = ServiceAccessor.getNodeManager().getNode(
+                getIntent().getStringExtra(Constants.TAG_MEMBER_ID));
+        toolbar.setTitle(mMember.getName() +"\'s Files");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mMember = ServiceAccessor.getNodeManager().getNode(
-                getIntent().getStringExtra(Constants.TAG_MEMBER_ID));
-
         mFileListVIew = (ListView) findViewById(R.id.list_files);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.list_memberDetails_SwipeRefresh);
 
         // create a adapter for the file list
         mFileListAdapter = new FileListAdapter(this, R.layout.file_list_item);
         mFileListVIew.setAdapter(mFileListAdapter);
+
+        // initialize the SwipeRefresh
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshMemberDetails(true);
+            }
+        });
 
         // set up onClick on the file list
         mFileListVIew.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -104,7 +115,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
                             protected void onPostExecute(File file) {
                                 MemberDetailsActivity.this.onFileOpened(file);
                             }
-                        }.execute();
+                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     }
                 }
             }
@@ -131,17 +142,20 @@ public class MemberDetailsActivity extends AppCompatActivity {
         if(isConnecting) {
             connectionProgressDialog.dismiss();
         }
-        refreshMemberDetails();
+        refreshMemberDetails(false);
 
     }
 
-    void refreshMemberDetails() {
+    void refreshMemberDetails(Boolean force) {
         Log.i(LOG_TAG, "Displaying Member: " +mMember.getId());
+        mSwipeRefreshLayout.setRefreshing(true);
         mFileListAdapter.clear();
-        if(mMember.isConnected()) {
+        if(mMember.isConnected() && !force) {
             List<MobileFile> fileList = mMember.getBackingFilesystem().ls("/");
             if(fileList != null){
+                mFileListAdapter.clear();
                 mFileListAdapter.addAll(fileList);
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         }
         else {
@@ -173,35 +187,28 @@ public class MemberDetailsActivity extends AppCompatActivity {
                 protected void onPostExecute(Boolean success) {
                     MemberDetailsActivity.this.onConnectComplete(success);
                 }
-            }.execute();
-        }
-        //try again if connected
-        if(mMember.isConnected()) {
-            List<MobileFile> fileList = mMember.getBackingFilesystem().ls("/");
-            if(fileList != null){
-                mFileListAdapter.addAll(fileList);
-            }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
 
     void onConnectComplete(boolean success){
         connectionProgressDialog.dismiss();
-        isConnecting = false;
         if(success) {
-            refreshMemberDetails();
+            refreshMemberDetails(false);
         }
         else {
             connectTask.cancel(true);
             Snackbar.make(mFileListVIew, "Connection Failed.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
+        isConnecting = false;
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     void onFileOpened(File file) {
         if(openProgressDialog != null) {
             openProgressDialog.dismiss();
         }
-        isOpeningFile = false;
         if(file != null) {
             // start intent to open file
             Log.i(LOG_TAG, "Opening file: " +file.getAbsoluteFile());
@@ -216,6 +223,7 @@ public class MemberDetailsActivity extends AppCompatActivity {
             Snackbar.make(mFileListVIew, "Unable to Open File", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
+        isOpeningFile = false;
     }
 
     private String getMimeType(String url)

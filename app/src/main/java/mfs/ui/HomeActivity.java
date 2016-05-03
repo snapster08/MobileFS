@@ -1,7 +1,11 @@
 package mfs.ui;
 
 import android.app.LoaderManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -9,6 +13,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -79,9 +84,33 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         mFab.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //temp
-                Snackbar.make(mJoinGroupButton, "Does Nothing for now", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                // show add member dialog
+                AlertDialog.Builder addMemberDialogBuilder = new AlertDialog.Builder(HomeActivity.this);
+                addMemberDialogBuilder.setTitle("Add Member");
+                addMemberDialogBuilder.setMessage(getString(R.string.label_groupInfo) +"\n"
+                                +ServiceAccessor.getNodeManager().generateJoiningLink());
+                addMemberDialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                addMemberDialogBuilder.setNegativeButton("Copy", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        ClipboardManager clipboard = (ClipboardManager)
+                                getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipData clip = ClipData.newPlainText("Group Link",
+                                ServiceAccessor.getNodeManager().generateJoiningLink());
+                        clipboard.setPrimaryClip(clip);
+                        // show a snackbar
+                        Snackbar.make(mMembersListView, "Copied to clipboard.", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                });
+                addMemberDialogBuilder.create();
+                addMemberDialogBuilder.show();
             }
         });
 
@@ -114,15 +143,8 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-        //mBgServiceConn = new BackgroundServiceConnection();
-
         // start the background service
         startService(new Intent(this, BackgroundService.class));
-
-//        //To get the filesystem structure
-//        Filesystem fs = ServiceAccessor.getFilesystem();
-//        Log.i(LOG_TAG, fs.getFilesystemMetadata(
-//                Environment.getExternalStorageDirectory().getAbsolutePath()).toString());
 
         Log.i(LOG_TAG, "On Create.");
     }
@@ -147,10 +169,6 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 break;
 
         }
-
-//        // bind to the background service
-//        bindService(new Intent(this,
-//                BackgroundService.class), mBgServiceConn, Context.BIND_AUTO_CREATE);
 
         refreshMemberList();
     }
@@ -197,7 +215,6 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
         else {
             menu.findItem(R.id.action_exit_group).setVisible(false);
         }
-
         return true;
 
     }

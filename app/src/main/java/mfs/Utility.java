@@ -69,7 +69,7 @@ public class Utility {
         }
     }
 
-    public static String convertMessagetoString(Message message) {
+    public static String convertMessageToString(Message message) {
         try{
             JSONObject jsonMessage = new JSONObject();
             jsonMessage.put(MessageContract.Field.FIELD_MSG_TYPE, message.getType());

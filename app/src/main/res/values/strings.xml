@@ -6,10 +6,10 @@
     <string name="label_notImplemented">Not Implemented</string>
 
     <!-- Strings for the Home Activity -->
-    <string name="label_noGroup">You Are not a part of any group.</string>
+    <string name="label_noGroup">You are not a part of any group.</string>
 
     <!-- Strings for the Create/Join Group Activity -->
-    <string name="label_createGroup">Provide these details for others to join your group</string>
+    <string name="label_groupInfo">Provide these details for others to join your group</string>
     <string name="label_joinGroup">Enter the link to join a group</string>
     <string name="button_copy">Copy</string>
     <string name="button_backHome">Home</string>

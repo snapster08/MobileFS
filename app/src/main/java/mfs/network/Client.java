@@ -87,6 +87,33 @@ public class Client {
         }
     }
 
+    public void sendMessage(String dstName, int dstPort, String message) {
+        if(dstName == null || message == null) {
+            Log.e(LOG_TAG, "Called sendMessage() with null parameters.");
+            return;
+        }
+        Socket socket;
+        try {
+            Log.i(LOG_TAG, "Connecting to IP:" +dstName +" Port: " +dstPort);
+            socket = new Socket(dstName, dstPort);
+            socket.setSoTimeout(ServerContract.REQUEST_TIMEOUT);
+            // send message
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            out.writeUTF(message);
+            Log.i(LOG_TAG, "Sent: " +message);
+            socket.close();
+        }
+        catch (InterruptedIOException e) {
+            Log.e(LOG_TAG, "Read timed-out.", e);
+            return;
+        }
+        catch (IOException e) {
+            Log.e(LOG_TAG, "IOException.", e);
+            return;
+        }
+    }
+
+
     public Response<File> executeRequestFile(String dstName, int dstPort, String filePath) {
         if(dstName == null || filePath == null) {
             Log.e(LOG_TAG, "Called executeRequestString() with null parameters.");
@@ -96,7 +123,7 @@ public class Client {
         try {
             // create file request message
             Message fileRequest = new Message(MessageContract.Type.MSG_GET_FILE, filePath);
-            String requestString = Utility.convertMessagetoString(fileRequest);
+            String requestString = Utility.convertMessageToString(fileRequest);
 
             // connect to destination
             Log.i(LOG_TAG, "Connecting to IP:" +dstName +" Port: " +dstPort);

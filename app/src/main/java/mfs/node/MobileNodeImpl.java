@@ -59,7 +59,7 @@ public class MobileNodeImpl implements MobileNode {
         Client.Response<String> response = Client.getInstance().executeRequestString(
                 Utility.getIpFromAddress(getAddress()),
                 Utility.getPortFromAddress(getAddress()),
-                Utility.convertMessagetoString(requestMessage));
+                Utility.convertMessageToString(requestMessage));
         if(response == null) {
             return false;
         }

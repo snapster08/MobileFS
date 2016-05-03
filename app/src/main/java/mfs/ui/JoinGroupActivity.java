@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -34,7 +35,10 @@ public class JoinGroupActivity extends AppCompatActivity {
         setContentView(R.layout.activity_join_group);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ab = getSupportActionBar();
+        if(ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
 
         mUserName = getIntent().getStringExtra(Constants.TAG_NAME);
         mSelectedFile = getIntent().getStringExtra(Constants.TAG_SELECTED_FILE);
@@ -78,9 +82,7 @@ public class JoinGroupActivity extends AppCompatActivity {
                     protected void onPostExecute(Boolean success) {
                         JoinGroupActivity.this.onJoinComplete(success);
                     }
-                }.execute();
-
-
+                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
     }

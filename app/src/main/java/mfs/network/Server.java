@@ -129,15 +129,31 @@ public class Server {
                     List<MobileNode> currentNodes = nm.getCurrentNodes();
                     String responseBody = Utility.convertNodeListToJson(currentNodes).toString();
                     Message response = new Message(MessageContract.Type.MSG_JOIN_SUCCESS, responseBody);
-                    sendResponse(requestSocket, Utility.convertMessagetoString(response));
+                    sendResponse(requestSocket, Utility.convertMessageToString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
-                    // TODO send new node info to all the currentNodes
+
+                    // send new node info to all the currentNodes
+                    // create a new node info message
+                    String requestBody = Utility.convertNodeToJson(newNode).toString();
+                    Message requestMessage = new Message(MessageContract.Type.MSG_NEW_NODE_INFO, requestBody);
+                    for (MobileNode node: ServiceAccessor.getNodeManager().getCurrentNodes()) {
+                        Client.getInstance().sendMessage(Utility.getIpFromAddress(node.getAddress()),
+                                Utility.getPortFromAddress(node.getAddress()),
+                                Utility.convertMessageToString(requestMessage));
+                    }
                 }
                 else {
                     // send failure response
                     Message response = new Message(MessageContract.Type.MSG_JOIN_FAILURE, "");
-                    sendResponse(requestSocket, Utility.convertMessagetoString(response));
+                    sendResponse(requestSocket, Utility.convertMessageToString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
+                }
+                break;
+            case MessageContract.Type.MSG_NEW_NODE_INFO:
+                if(nm.isConnectedToGroup()) {
+                    // add this node to my list
+                    MobileNode newNode = Utility.convertJsonToNode(request.getBody());
+                    ServiceAccessor.getNodeManager().addNode(newNode);
                 }
                 break;
             case MessageContract.Type.MSG_GET_FILE:
@@ -149,13 +165,13 @@ public class Server {
                     // send a failure response
                     Message failureResponse = new Message(MessageContract.Type.MSG_GET_FILE_FAILURE,
                             "File doesn't exist");
-                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
                     break;
                 }
                 // send success response containing the file meta data
                 Message successResponse = new Message(MessageContract.Type.MSG_GET_FILE_SUCCESS,
                         Utility.convertFileMetadataToJson(requestedFile));
-                sendResponse(requestSocket, Utility.convertMessagetoString(successResponse));
+                sendResponse(requestSocket, Utility.convertMessageToString(successResponse));
 
                 // send the file contents
                 try {
@@ -188,7 +204,7 @@ public class Server {
                     // send a failure response
                     Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
                             "Not Sharing any file");
-                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
                     break;
                 }
                 // response Body
@@ -202,7 +218,7 @@ public class Server {
                     // send a failure response
                     Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
                             "Unable to build response");
-                    sendResponse(requestSocket, Utility.convertMessagetoString(failureResponse));
+                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
                     break;
                 }
                 // send response
@@ -210,7 +226,7 @@ public class Server {
                         MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS,
                         responseBody.toString());
 
-                sendResponse(requestSocket, Utility.convertMessagetoString(metadataResponse));
+                sendResponse(requestSocket, Utility.convertMessageToString(metadataResponse));
                 break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");

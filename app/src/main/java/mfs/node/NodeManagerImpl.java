@@ -59,7 +59,7 @@ public class NodeManagerImpl implements NodeManager {
         // send a join request to link
         Client.Response<String> response = Client.getInstance()
                 .executeRequestString(Utility.getIpFromAddress(groupLink),
-                    Utility.getPortFromAddress(groupLink), Utility.convertMessagetoString(requestMessage));
+                    Utility.getPortFromAddress(groupLink), Utility.convertMessageToString(requestMessage));
         if(response == null) {
             return false;
         }
@@ -85,7 +85,7 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void exitGroup() {
-        nodeList.clear();
+        clearNodes();
         isConnectedToGroup = false;
     }
 
@@ -136,5 +136,10 @@ public class NodeManagerImpl implements NodeManager {
             nodeMap.remove(node.getId());
             nodeList.remove(node);
         }
+    }
+
+    private void clearNodes() {
+        nodeList.clear();
+        nodeMap.clear();
     }
 }
