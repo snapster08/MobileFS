@@ -24,10 +24,6 @@ public interface NodeManager {
 
     void removeNode(MobileNode node);
 
-    String getSharedFile();
-
-    void setSharedFile(String sharedFile);
-
     List<MobileFile> getAllOpenFiles();
 
         //void addNodeChangeListener();

@@ -23,19 +23,9 @@ public class NodeManagerImpl implements NodeManager {
     private final static String LOG_TAG = NodeManagerImpl.class.getSimpleName();
 
     boolean isConnectedToGroup = false;
-    String sharedFile;
     List<MobileNode> nodeList = new LinkedList<>();
     HashMap<String, MobileNode> nodeMap = new HashMap<>();
-
-    public String getSharedFile() {
-        return sharedFile;
-    }
-
-    public void setSharedFile(String sharedFile) {
-        this.sharedFile = sharedFile;
-    }
-
-    @Override
+        @Override
     public boolean isConnectedToGroup() {
         return isConnectedToGroup;
     }
@@ -58,7 +48,8 @@ public class NodeManagerImpl implements NodeManager {
         MobileNode node = new MobileNodeImpl(ServiceAccessor.getMyId(),
                 username, generateJoiningLink());
         String requestBody = Utility.convertNodeToJson(node).toString();
-        Message requestMessage = new Message(MessageContract.Type.MSG_JOIN_REQUEST, requestBody);
+        Message requestMessage = new Message(ServiceAccessor.getMyId(),
+                MessageContract.Type.MSG_JOIN_REQUEST, requestBody);
         // send a join request to link
         Client.Response<String> response = Client.getInstance()
                 .executeRequestString(Utility.getIpFromAddress(groupLink),
@@ -90,8 +81,10 @@ public class NodeManagerImpl implements NodeManager {
     public void exitGroup() {
         // send leave group message to everyone
         for(MobileNode node : getCurrentNodes()) {
-            if(node.getId() != ServiceAccessor.getMyId()) {
-                Message leaveGroupMessage = new Message(MessageContract.Type.MSG_LEAVE, ServiceAccessor.getMyId());
+            if(!node.getId().equals(ServiceAccessor.getMyId())) {
+                Message leaveGroupMessage = new Message(ServiceAccessor.getMyId(),
+                        MessageContract.Type.MSG_LEAVE,
+                        ServiceAccessor.getMyId());
                 Client.getInstance().sendMessage(
                         Utility.getIpFromAddress(node.getAddress()),
                         Utility.getPortFromAddress(node.getAddress()),
@@ -106,6 +99,10 @@ public class NodeManagerImpl implements NodeManager {
         }
         clearNodes();
         isConnectedToGroup = false;
+
+        // clear my shared files
+        ServiceAccessor.getPermissionManager().clearSharedFiles();
+
     }
 
     @Override

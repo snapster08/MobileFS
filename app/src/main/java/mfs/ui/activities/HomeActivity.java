@@ -231,11 +231,15 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 return true;
             case R.id.action_stop_server:
                 // this will stop the service provided all the clients are unbound
-                stopService(new Intent(this,BackgroundService.class));
+//                stopService(new Intent(this,BackgroundService.class));
+                Snackbar.make(mMembersListView, "Does nothing.", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
                 return true;
             case R.id.action_start_server:
                 // this will start the service if it is was not started already
-                startService(new Intent(this,BackgroundService.class));
+//                startService(new Intent(this,BackgroundService.class));
+                Snackbar.make(mMembersListView, "Does nothing.", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
                 return true;
             case R.id.action_exit_group:
                 new AsyncTask<Void, Void, Void>() {

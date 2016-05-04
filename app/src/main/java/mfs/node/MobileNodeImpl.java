@@ -11,6 +11,7 @@ import mfs.filesystem.FilesystemImpl;
 import mfs.network.Client;
 import mfs.network.Message;
 import mfs.network.MessageContract;
+import mfs.service.ServiceAccessor;
 
 public class MobileNodeImpl implements MobileNode {
     private static final String LOG_TAG = MobileNodeImpl.class.getSimpleName();
@@ -65,7 +66,8 @@ public class MobileNodeImpl implements MobileNode {
     @Override
     public boolean connect() {
         // request filesystem metadata from the node
-        Message requestMessage = new Message(MessageContract.Type.MSG_GET_FS_METADATA,
+        Message requestMessage = new Message(ServiceAccessor.getMyId(),
+                MessageContract.Type.MSG_GET_FS_METADATA,
                 "GET FILESYSTEM METADATA");
         Client.Response<String> response = Client.getInstance().executeRequestString(
                 Utility.getIpFromAddress(getAddress()),
@@ -79,22 +81,20 @@ public class MobileNodeImpl implements MobileNode {
         if (responseMessage.getType() != MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS) {
             return false;
         }
-        String root;
         JSONObject metadata;
         // parse the response
         try {
             JSONObject jsonResponse = new JSONObject(responseMessage.getBody());
-            root = jsonResponse.getString(MessageContract.Field.FIELD_FS_ROOT);
             metadata = jsonResponse.getJSONObject(MessageContract.Field.FIELD_FS_METADATA);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Unable to parse MSG_GET_FS_METADATA response.", e);
             return false;
         }
-        if (backingFilesystem != null && backingFilesystem.getRootDirectory().equals(root)) {
+
+        if (backingFilesystem != null) {
             backingFilesystem.setFilesystemMetadata(metadata);
         } else {
-            // TODO close all open files before updating the filesystem
-            backingFilesystem = new FilesystemImpl(root, metadata, this);
+            backingFilesystem = new FilesystemImpl(metadata, this);
         }
         setConnected(true);
         return true;

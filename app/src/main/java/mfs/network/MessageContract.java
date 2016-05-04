@@ -24,15 +24,20 @@ public class MessageContract {
         public final static int MSG_COMMIT_REJECT = 402;
         public final static int MSG_COMMIT_COMPLETE = 403;
 
+        // type for sharing new node info
         public final static int MSG_NEW_NODE_INFO = 500;
 
         // types for leave operation
         public final static int MSG_LEAVE = 600;
 
+        // types for close file operation
+        public final static int MSG_FILE_CLOSE = 700;
+
     }
 
 
     public static class Field {
+        public final static String FIELD_MSG_SENDER_ID = "MSG_SENDER_ID";
         public final static String FIELD_MSG_TYPE = "MSG_TYPE";
         public final static String FIELD_MSG_BODY = "MSG_BODY";
 

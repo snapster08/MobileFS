@@ -22,13 +22,9 @@ public interface Filesystem {
 
     MobileNode getOwningNode();
 
-    String getRootDirectory();
-
     JSONObject getFilesystemMetadata();
 
     void setFilesystemMetadata(JSONObject filesystemMetadata);
-
-    void setRootDirectory(String rootDirectory);
 
     void setOwningNode(MobileNode owningNode);
 

@@ -60,9 +60,10 @@ public class Utility {
     public static Message convertStringToMessage(String messageString) {
         try {
             JSONObject messageJson = new JSONObject(messageString);
+            String senderId = messageJson.getString(MessageContract.Field.FIELD_MSG_SENDER_ID);
             int type = messageJson.getInt(MessageContract.Field.FIELD_MSG_TYPE);
             String body = messageJson.getString(MessageContract.Field.FIELD_MSG_BODY);
-            return new Message(type, body);
+            return new Message(senderId, type, body);
         }
         catch (JSONException e) {
             Log.e(LOG_TAG, "JSONException", e);
@@ -73,6 +74,7 @@ public class Utility {
     public static String convertMessageToString(Message message) {
         try{
             JSONObject jsonMessage = new JSONObject();
+            jsonMessage.put(MessageContract.Field.FIELD_MSG_SENDER_ID, message.getSenderId());
             jsonMessage.put(MessageContract.Field.FIELD_MSG_TYPE, message.getType());
             jsonMessage.put(MessageContract.Field.FIELD_MSG_BODY, message.getBody());
             return jsonMessage.toString();
@@ -83,6 +85,10 @@ public class Utility {
     }
 
     public static JSONObject convertNodeToJson(MobileNode node) {
+        if(node == null) {
+            return null;
+        }
+
         try{
             JSONObject json = new JSONObject();
             json.put(MessageContract.Field.FIELD_NODE_ID, node.getId());
@@ -175,15 +181,6 @@ public class Utility {
 
 
     public static JSONObject getFilesystemMetadata(String path, boolean includeHidden) {
-        /*
-        entry structure
-        {
-         "name" :"directoryname"
-         "type" : "directory/file"
-         "contents" : [<contents>]
-        }
-        */
-
         File root = new File(path);
         JSONObject directory = new JSONObject();
         try {
@@ -242,4 +239,41 @@ public class Utility {
         return type;
     }
 
+    public static JSONObject convertFileListToJson(List<File> sharedFiles) {
+        /*
+        entry structure
+        {
+         "name" :"directoryname"
+         "type" : "directory/file"
+         "contents" : [<contents>]
+        }
+        */
+        JSONObject directory = new JSONObject();
+        try {
+            JSONArray sharedFilesJson = new JSONArray();
+            if(sharedFiles == null || sharedFiles.isEmpty())
+            {
+                directory.put(MessageContract.Field.FIELD_FS_FILE_NAME, "/dummy");
+                directory.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "directory");
+                directory.put(MessageContract.Field.FIELD_FS_FILE_CONTENTS,
+                        sharedFilesJson);
+                return directory;
+            }
+
+            for(File file : sharedFiles) {
+                JSONObject sharedFileJson = new JSONObject();
+                sharedFileJson.put(MessageContract.Field.FIELD_FS_FILE_NAME, file.getAbsolutePath());
+                sharedFileJson.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "file");
+                sharedFilesJson.put(sharedFileJson);
+            }
+            directory.put(MessageContract.Field.FIELD_FS_FILE_NAME, sharedFiles.get(0).getAbsolutePath());
+            directory.put(MessageContract.Field.FIELD_FS_FILE_TYPE, "directory");
+            directory.put(MessageContract.Field.FIELD_FS_FILE_CONTENTS,
+                    sharedFilesJson);
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, "JSONException in convertFileListToJson()", e);
+            return directory;
+        }
+        return directory;
+    }
 }

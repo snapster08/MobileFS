@@ -53,7 +53,6 @@ public class CreateGroupActivity extends AppCompatActivity {
         mUserName = getIntent().getStringExtra(Constants.TAG_NAME);
         mSelectedFile = getIntent().getStringExtra(Constants.TAG_SELECTED_FILE);
         // set the shared file
-        ServiceAccessor.getNodeManager().setSharedFile(mSelectedFile);
         List<File> selectedFileList = new LinkedList<File>();
         selectedFileList.add(new File(mSelectedFile));
         ServiceAccessor.getPermissionManager().initializeSharedFiles(selectedFileList);

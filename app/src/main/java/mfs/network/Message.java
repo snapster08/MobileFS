@@ -2,12 +2,22 @@ package mfs.network;
 
 
 public class Message {
+    private String senderId;
     private int type;
     private String body;
 
-    public Message(int type, String body) {
+    public Message(String senderId, int type, String body) {
+        this.senderId = senderId;
         this.type = type;
         this.body = body;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
     }
 
     public int getType() {

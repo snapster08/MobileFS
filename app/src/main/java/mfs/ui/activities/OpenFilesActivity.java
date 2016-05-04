@@ -32,6 +32,7 @@ public class OpenFilesActivity extends AppCompatActivity {
     OpenFileListAdapter mOpenFileListAdapter;
     ProgressDialog commitProgressDialog;
     AsyncTask commitTask;
+    AsyncTask closeTask;
     boolean isCommitting;
 
     @Override
@@ -107,18 +108,24 @@ public class OpenFilesActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
-    public void onFileClosed(MobileFile file) {
-        if(file.getOwningFilesystem().closeFile(file)) {
-            mOpenFileListAdapter.remove(file);
-            mOpenFileListAdapter.notifyDataSetChanged();
-            Snackbar.make(mOpenFileListView, "File Closed.", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-        }
-        else {
-            Snackbar.make(mOpenFileListView, "Unable to close file.", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-        }
+    public void onFileClosed(final MobileFile file) {
 
+        closeTask = new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                Log.i(LOG_TAG, "Starting Close Task.");
+                if (file.getOwningFilesystem().closeFile(file)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        mOpenFileListAdapter.remove(file);
+        mOpenFileListAdapter.notifyDataSetChanged();
+        Snackbar.make(mOpenFileListView, "File Closed.", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
     public void onFileCommitted(final MobileFile file) {

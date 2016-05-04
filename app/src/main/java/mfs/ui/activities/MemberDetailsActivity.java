@@ -49,6 +49,13 @@ public class MemberDetailsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mMember = ServiceAccessor.getNodeManager().getNode(
                 getIntent().getStringExtra(Constants.TAG_MEMBER_ID));
+        if(mMember == null) {
+            // go back to the main screen
+            Intent upIntent = new Intent(this, HomeActivity.class);
+            upIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            startActivity(upIntent);
+        }
+
         if(toolbar != null) {
             toolbar.setTitle(mMember.getName() +"\'s Files");
         }

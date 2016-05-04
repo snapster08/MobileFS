@@ -122,7 +122,8 @@ public class Client {
         Socket socket;
         try {
             // create file request message
-            Message fileRequest = new Message(MessageContract.Type.MSG_GET_FILE, filePath);
+            Message fileRequest = new Message(ServiceAccessor.getMyId(),
+                    MessageContract.Type.MSG_GET_FILE, filePath);
             String requestString = Utility.convertMessageToString(fileRequest);
 
             // connect to destination

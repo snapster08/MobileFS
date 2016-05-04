@@ -26,6 +26,7 @@ import mfs.filesystem.Filesystem;
 import mfs.filesystem.MobileFile;
 import mfs.node.MobileNode;
 import mfs.node.NodeManager;
+import mfs.permission.PermissionManager;
 import mfs.service.ServiceAccessor;
 
 public class Server {
@@ -121,8 +122,10 @@ public class Server {
         }
         Log.i(LOG_TAG, "Received Request: "+requesMessage);
         NodeManager nodeManager = ServiceAccessor.getNodeManager();
+        PermissionManager permissionManager = ServiceAccessor.getPermissionManager();
         // convert the response to message object and handle it
         Message request = Utility.convertStringToMessage(requesMessage);
+        boolean fail = false;
         switch (request.getType()) {
             case MessageContract.Type.MSG_JOIN_REQUEST:
                 if(nodeManager.isConnectedToGroup()) {
@@ -132,14 +135,16 @@ public class Server {
                     // send the member details in response
                     List<MobileNode> currentNodes = nodeManager.getCurrentNodes();
                     String responseBody = Utility.convertNodeListToJson(currentNodes).toString();
-                    Message response = new Message(MessageContract.Type.MSG_JOIN_SUCCESS, responseBody);
+                    Message response = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_JOIN_SUCCESS, responseBody);
                     sendResponse(requestSocket, Utility.convertMessageToString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
 
                     // send new node info to all the currentNodes
                     // create a new node info message
                     String requestBody = Utility.convertNodeToJson(newNode).toString();
-                    Message requestMessage = new Message(MessageContract.Type.MSG_NEW_NODE_INFO, requestBody);
+                    Message requestMessage = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_NEW_NODE_INFO, requestBody);
                     for (MobileNode node: ServiceAccessor.getNodeManager().getCurrentNodes()) {
                         Client.getInstance().sendMessage(Utility.getIpFromAddress(node.getAddress()),
                                 Utility.getPortFromAddress(node.getAddress()),
@@ -148,7 +153,8 @@ public class Server {
                 }
                 else {
                     // send failure response
-                    Message response = new Message(MessageContract.Type.MSG_JOIN_FAILURE, "");
+                    Message response = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_JOIN_FAILURE, "");
                     sendResponse(requestSocket, Utility.convertMessageToString(response));
                     Log.i(LOG_TAG, "Sent Response: " +response.toString());
                 }
@@ -164,18 +170,45 @@ public class Server {
                 break;
             case MessageContract.Type.MSG_GET_FILE:
                 String requestedFilepath = request.getBody();
-
                 // get the file object and send the file meta-data if the file is present
                 File requestedFile = new File(requestedFilepath);
-                if(!requestedFile.isFile()) {
+
+                // check if the file is shared
+                if(!permissionManager.isShared(requestedFile)) {
                     // send a failure response
-                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FILE_FAILURE,
-                            "File doesn't exist");
+                    Message failureResponse = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_GET_FILE_FAILURE,
+                            "File is not shared.");
                     sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
+                    fail = true;
                     break;
                 }
+
+                // check if the file exists
+                if(!requestedFile.isFile()) {
+                    // send a failure response
+                    Message failureResponse = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_GET_FILE_FAILURE,
+                            "File doesn't exist");
+                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
+                    fail = true;
+                    break;
+                }
+
+                // acquireLock the file
+                if(!permissionManager.acquireLock(requestedFile, request.getSenderId())) {
+                    // send a failure response
+                    Message failureResponse = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_GET_FILE_FAILURE,
+                            "File is locked.");
+                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
+                    fail = true;
+                    break;
+                }
+
                 // send success response containing the file meta data
-                Message successResponse = new Message(MessageContract.Type.MSG_GET_FILE_SUCCESS,
+                Message successResponse = new Message(ServiceAccessor.getMyId(),
+                        MessageContract.Type.MSG_GET_FILE_SUCCESS,
                         Utility.convertFileMetadataToJson(requestedFile.getAbsolutePath(),
                                 requestedFile.length()));
                 sendResponse(requestSocket, Utility.convertMessageToString(successResponse));
@@ -198,38 +231,33 @@ public class Server {
                 }
                 catch (FileNotFoundException e) {
                     Log.e(LOG_TAG, "File Not Found, but this has been checked already.", e);
+                    fail = true;
                     break;
                 }
                 catch (IOException e) {
                     Log.e(LOG_TAG, "Unable to get requestsocket input stream. Socket closed already??", e);
+                    fail = true;
                     break;
                 }
                 break;
             case MessageContract.Type.MSG_GET_FS_METADATA:
-                String sharedFile = ServiceAccessor.getNodeManager().getSharedFile();
-                if(sharedFile == null) {
-                    // send a failure response
-                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
-                            "Not Sharing any file");
-                    sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
-                    break;
-                }
+                List<File> sharedFiles = permissionManager.getSharedFiles();
                 // response Body
-                JSONObject metadata = Utility.getFilesystemMetadata(sharedFile, false);
+                JSONObject metadata = Utility.convertFileListToJson(sharedFiles);
                 JSONObject responseBody = new JSONObject();
                 try {
-                    responseBody.put(MessageContract.Field.FIELD_FS_ROOT, sharedFile);
                     responseBody.put(MessageContract.Field.FIELD_FS_METADATA, metadata);
                 } catch (JSONException e) {
                     Log.e(LOG_TAG, "Error building response.", e);
                     // send a failure response
-                    Message failureResponse = new Message(MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
+                    Message failureResponse = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_GET_FS_METADATA_FAILURE,
                             "Unable to build response");
                     sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
                     break;
                 }
                 // send response
-                Message metadataResponse = new Message(
+                Message metadataResponse = new Message(ServiceAccessor.getMyId(),
                         MessageContract.Type.MSG_GET_FS_METADATA_SUCCESS,
                         responseBody.toString());
 
@@ -246,7 +274,8 @@ public class Server {
                     }
 
                     // send the commit accept response
-                    Message commitAcceptResponse = new Message(MessageContract.Type.MSG_COMMIT_ACCEPT,
+                    Message commitAcceptResponse = new Message(ServiceAccessor.getMyId(),
+                            MessageContract.Type.MSG_COMMIT_ACCEPT,
                             "");
                     sendResponse(requestSocket, Utility.convertMessageToString(commitAcceptResponse));
 
@@ -295,12 +324,21 @@ public class Server {
                     break;
                 }
                 // send commit completed message
-                Message commitCompleteMessage = new Message(MessageContract.Type.MSG_COMMIT_COMPLETE, "");
+                Message commitCompleteMessage = new Message(ServiceAccessor.getMyId(),
+                        MessageContract.Type.MSG_COMMIT_COMPLETE, "");
                 sendResponse(requestSocket, Utility.convertMessageToString(commitCompleteMessage));
                 break;
 
             case MessageContract.Type.MSG_LEAVE:
                 MobileNode leavingNode = nodeManager.getNode(request.getBody());
+                if(leavingNode == null) {
+                    try {
+                        requestSocket.close();
+                    }catch (IOException e) {
+                        Log.e(LOG_TAG, "IOException.", e);
+                    }
+                    break;
+                }
                 Log.i(LOG_TAG, "In MSG_LEAVE " + Utility.convertNodeToJson(leavingNode));
                 // close all files of this node
                 Filesystem leavingFS = leavingNode.getBackingFilesystem();
@@ -310,14 +348,10 @@ public class Server {
                         leavingFS.closeFile(file);
                     }
                 }
-
                 // remove this node from the list
                 nodeManager.removeNode(leavingNode);
-
                 Log.i(LOG_TAG, "Current Nodes after remove in leave: "
                         +Utility.convertNodeListToJson(nodeManager.getCurrentNodes()));
-
-
                 try {
                     requestSocket.close();
                 }catch (IOException e) {
@@ -325,14 +359,27 @@ public class Server {
                 }
                 Log.i(LOG_TAG, "Leaving MSG_LEAVE");
                 break;
+            case MessageContract.Type.MSG_FILE_CLOSE:
+                String filenameToClose = request.getBody();
+                if(filenameToClose == null) {
+                    fail = true;
+                    break;
+                }
+
+                File file = new File(filenameToClose);
+                // release the acquireLock
+                permissionManager.releaseLock(file, request.getSenderId());
+                break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");
-                try {
-                    requestSocket.close();
-                }
-                catch (IOException e) {
-                    Log.e(LOG_TAG, "IOException.", e);
-                }
+        }
+        if(fail) {
+            try {
+                requestSocket.close();
+            }
+            catch (IOException e) {
+                Log.e(LOG_TAG, "IOException.", e);
+            }
         }
     }
 

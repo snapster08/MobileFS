@@ -72,7 +72,6 @@ public class JoinGroupActivity extends AppCompatActivity {
                 joinProgressDialog.show();
 
                 // set the shared file
-                ServiceAccessor.getNodeManager().setSharedFile(mSelectedFile);
                 List<File> selectedFileList = new LinkedList<File>();
                 selectedFileList.add(new File(mSelectedFile));
                 ServiceAccessor.getPermissionManager().initializeSharedFiles(selectedFileList);

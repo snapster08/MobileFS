@@ -56,9 +56,9 @@ public class BackgroundService extends Service {
                         .setSmallIcon(R.drawable.ic_launcher)
                         .setContentTitle("Listening for requests")
                         .setContentText("Touch to open.")
-                        .setContentIntent(homePendingIntent)
-                        .addAction(android.R.drawable.ic_menu_close_clear_cancel,
-                                "Stop", exitPendingIntent);
+                        .setContentIntent(homePendingIntent);
+//                        .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+//                                "Stop", exitPendingIntent);
         return mBuilder.build();
     }
 

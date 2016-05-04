@@ -21,21 +21,17 @@ import mfs.network.Client;
 import mfs.network.Message;
 import mfs.network.MessageContract;
 import mfs.node.MobileNode;
+import mfs.service.ServiceAccessor;
 
 public class FilesystemImpl implements Filesystem {
     private final static String LOG_TAG = FilesystemImpl.class.getSimpleName();
 
     private JSONObject filesystemMetadata;
-    private String rootDirectory;
     private MobileNode owningNode;
     List<MobileFile> openfileList = new LinkedList<>();
 
     public void setFilesystemMetadata(JSONObject filesystemMetadata) {
         this.filesystemMetadata = filesystemMetadata;
-    }
-
-    public void setRootDirectory(String rootDirectory) {
-        this.rootDirectory = rootDirectory;
     }
 
     public void setOwningNode(MobileNode owningNode) {
@@ -47,16 +43,12 @@ public class FilesystemImpl implements Filesystem {
         return openfileList;
     }
 
-    public String getRootDirectory() {
-        return rootDirectory;
-    }
 
     public JSONObject getFilesystemMetadata() {
         return filesystemMetadata;
     }
 
-    public FilesystemImpl(String rootDirectory, JSONObject filesystemMetadata, MobileNode owningNode) {
-        this.rootDirectory = rootDirectory;
+    public FilesystemImpl(JSONObject filesystemMetadata, MobileNode owningNode) {
         this.filesystemMetadata = filesystemMetadata;
         this.owningNode = owningNode;
     }
@@ -104,7 +96,8 @@ public class FilesystemImpl implements Filesystem {
     @Override
     public boolean commitFile(MobileFile fileHandle) {
         // send commit request
-        Message commitRequest = new Message(MessageContract.Type.MSG_COMMIT_REQUEST,
+        Message commitRequest = new Message(ServiceAccessor.getMyId(),
+                MessageContract.Type.MSG_COMMIT_REQUEST,
                 Utility.convertFileMetadataToJson(fileHandle.getOriginalPath(),
                         fileHandle.getLocalFileObject().length()));
         MobileNode node = fileHandle.getOwningFilesystem().getOwningNode();
@@ -167,6 +160,15 @@ public class FilesystemImpl implements Filesystem {
             return false;
         }
 
+        // send close command to owner, this will release the lock
+        Message closeCommand = new Message(ServiceAccessor.getMyId(),
+                MessageContract.Type.MSG_FILE_CLOSE,
+                fileHandle.getOriginalPath());
+        MobileNode node = fileHandle.getOwningFilesystem().getOwningNode();
+        Client.getInstance().sendMessage(Utility.getIpFromAddress(node.getAddress()),
+                        Utility.getPortFromAddress(node.getAddress()),
+                        Utility.convertMessageToString(closeCommand));
+
         // delete the local cache
         File localFile = fileHandle.getLocalFileObject();
         if(localFile == null) {
@@ -176,8 +178,9 @@ public class FilesystemImpl implements Filesystem {
             return false;
         }
         fileHandle.setLocalFileName(null);
+
         // remove file from openFile list
-        return getOpenFiles().remove(fileHandle);
+        return openfileList.remove(fileHandle);
     }
 
     @Override
@@ -195,7 +198,7 @@ public class FilesystemImpl implements Filesystem {
             String type = filesystem.getString(MessageContract.Field.FIELD_FS_FILE_TYPE);
             if(type.equals("file")) {
                 fileList.add(new MobileFileImpl(
-                        this, getRootDirectory() +"/" +name, MobileFileImpl.Type.file));
+                        this, name, MobileFileImpl.Type.file));
                 return fileList;
             }
             JSONArray contents = new JSONArray(filesystem.getString(
@@ -206,12 +209,12 @@ public class FilesystemImpl implements Filesystem {
                 String filetype = file.getString(MessageContract.Field.FIELD_FS_FILE_TYPE);
                 if(filetype.equals("file")) {
                     fileList.add(new MobileFileImpl(
-                            this, getRootDirectory() +"/" +filename, MobileFileImpl.Type.file));
+                            this, filename, MobileFileImpl.Type.file));
                 }
                 else {
                     fileList.add(new MobileFileImpl(
                             this,
-                            getRootDirectory() +"/" +filename,
+                            filename,
                             MobileFileImpl.Type.directory));
                 }
             }
