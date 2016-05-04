@@ -1,14 +1,10 @@
 package mfs.ui.activities;
 
-import android.app.LoaderManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -28,7 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import mfs.Utility;
-import mfs.data.DataContract;
 import mfs.node.MobileNode;
 import mfs.node.NodeManager;
 import mfs.service.BackgroundService;
@@ -38,7 +33,7 @@ import mfs.ui.Constants;
 import mfs.ui.adapters.MemberListAdapter;
 import mobilefs.seminar.pdfs.service.R;
 
-public class HomeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class HomeActivity extends AppCompatActivity {
 
     public final static String LOG_TAG = HomeActivity.class.getSimpleName();
     Button mJoinGroupButton;
@@ -116,9 +111,6 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
                 addMemberDialogBuilder.show();
             }
         });
-
-        // initialize a loader for the mMembersListView
-        getLoaderManager().initLoader(Constants.LOADER_MEMBER_LIST, null, this);
 
         // initialize the SwipeRefresh
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -285,47 +277,6 @@ public class HomeActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         mSwipeRefreshLayout.setRefreshing(false);
-    }
-
-    /**
-     * Instantiate and return a new Loader for the given ID.
-     *
-     * @param id   The ID whose loader is to be created.
-     * @param args Any arguments supplied by the caller.
-     * @return Return a new Loader instance that is ready to start loading.
-     */
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(
-                this,
-                DataContract.MembersEntry.CONTENT_URI,
-                null,   // projection
-                null,   // selection
-                null,   // selection args
-                null);  // sortOrder
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.i(LOG_TAG, "Load Finished for loader: " +loader.getId());
-        switch (loader.getId()) {
-            case Constants.LOADER_MEMBER_LIST:
-               // mMembersListAdapter.swapCursor(data);
-                break;
-            default:
-                Log.e(LOG_TAG, "Unknown Loader Finished.");
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        switch (loader.getId()) {
-            case Constants.LOADER_MEMBER_LIST:
-                //mMembersListAdapter.swapCursor(null);
-                break;
-            default:
-                Log.e(LOG_TAG, "Unknown Loader Reset.");
-        }
     }
 }
 

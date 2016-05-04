@@ -9,7 +9,10 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import mfs.filesystem.Filesystem;
+import mfs.filesystem.MobileFile;
 import mfs.node.MobileNode;
 import mfs.service.ServiceAccessor;
 import mobilefs.seminar.pdfs.service.R;
@@ -61,7 +64,14 @@ public class MemberListAdapter extends ArrayAdapter<MobileNode> {
             convertView.setVisibility(View.GONE);
         }
         viewHolder.nameTextView.setText(node.getName());
-        viewHolder.statusTextView.setText(node.isConnected()?"Connected":"Disconnected");
+        // set connection status
+        String connectionStatus = "Member";
+        Filesystem fs = node.getBackingFilesystem();
+        if(fs != null) {
+            List<MobileFile> fileList = fs.ls("/");
+            connectionStatus = fileList.size() +" files";
+        }
+        viewHolder.statusTextView.setText(connectionStatus);
         return convertView;
     }
 }

@@ -74,6 +74,7 @@ public class JoinGroupActivity extends AppCompatActivity {
                 // set the shared file
                 List<File> selectedFileList = new LinkedList<File>();
                 selectedFileList.add(new File(mSelectedFile));
+                ServiceAccessor.getPermissionManager().clearSharedFiles();
                 ServiceAccessor.getPermissionManager().initializeSharedFiles(selectedFileList);
 
                 // start join action

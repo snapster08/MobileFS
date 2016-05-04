@@ -125,14 +125,14 @@ public class Server {
         PermissionManager permissionManager = ServiceAccessor.getPermissionManager();
         // convert the response to message object and handle it
         Message request = Utility.convertStringToMessage(requesMessage);
-        boolean fail = false;
+        boolean closeSocket = false;
         switch (request.getType()) {
             case MessageContract.Type.MSG_JOIN_REQUEST:
                 if(nodeManager.isConnectedToGroup()) {
                     // add this node to my list
                     MobileNode newNode = Utility.convertJsonToNode(request.getBody());
                     ServiceAccessor.getNodeManager().addNode(newNode);
-                    // send the member details in response
+                    // send all node info in response
                     List<MobileNode> currentNodes = nodeManager.getCurrentNodes();
                     String responseBody = Utility.convertNodeListToJson(currentNodes).toString();
                     Message response = new Message(ServiceAccessor.getMyId(),
@@ -180,7 +180,7 @@ public class Server {
                             MessageContract.Type.MSG_GET_FILE_FAILURE,
                             "File is not shared.");
                     sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
 
@@ -191,7 +191,7 @@ public class Server {
                             MessageContract.Type.MSG_GET_FILE_FAILURE,
                             "File doesn't exist");
                     sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
 
@@ -202,7 +202,7 @@ public class Server {
                             MessageContract.Type.MSG_GET_FILE_FAILURE,
                             "File is locked.");
                     sendResponse(requestSocket, Utility.convertMessageToString(failureResponse));
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
 
@@ -231,12 +231,12 @@ public class Server {
                 }
                 catch (FileNotFoundException e) {
                     Log.e(LOG_TAG, "File Not Found, but this has been checked already.", e);
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
                 catch (IOException e) {
                     Log.e(LOG_TAG, "Unable to get requestsocket input stream. Socket closed already??", e);
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
                 break;
@@ -328,7 +328,6 @@ public class Server {
                         MessageContract.Type.MSG_COMMIT_COMPLETE, "");
                 sendResponse(requestSocket, Utility.convertMessageToString(commitCompleteMessage));
                 break;
-
             case MessageContract.Type.MSG_LEAVE:
                 MobileNode leavingNode = nodeManager.getNode(request.getBody());
                 if(leavingNode == null) {
@@ -362,18 +361,54 @@ public class Server {
             case MessageContract.Type.MSG_FILE_CLOSE:
                 String filenameToClose = request.getBody();
                 if(filenameToClose == null) {
-                    fail = true;
+                    closeSocket = true;
                     break;
                 }
 
                 File file = new File(filenameToClose);
-                // release the acquireLock
+                // release the lock
                 permissionManager.releaseLock(file, request.getSenderId());
+                break;
+            case MessageContract.Type.MSG_GET_GROUP_INFO:
+                if (NetworkChangeReceiver.isResyncing()) {
+                    Log.i(LOG_TAG, "Resync in progress here so not responding.");
+                    closeSocket = true;
+                    break;
+                }
+                String requesterAddress = request.getBody();
+                // send all node info in response
+                List<MobileNode> currentNodes = nodeManager.getCurrentNodes();
+                String allNodeInfo = Utility.convertNodeListToJson(currentNodes).toString();
+                Message groupInfoResponse = new Message(ServiceAccessor.getMyId(),
+                        MessageContract.Type.MSG_GROUP_INFO, allNodeInfo);
+                Client.getInstance().sendMessage(
+                        Utility.getIpFromAddress(requesterAddress),
+                        Utility.getPortFromAddress(requesterAddress),
+                        Utility.convertMessageToString(groupInfoResponse)
+                );
+                Log.i(LOG_TAG, "Sent Response: " +groupInfoResponse.toString());
+                closeSocket = true;
+                break;
+
+            case MessageContract.Type.MSG_GROUP_INFO:
+                // update my node list
+                List<MobileNode> nodeList = Utility.convertJsonToNodeList(request.getBody());
+
+                synchronized (nodeManager.getCurrentNodes()) {
+                    for (MobileNode currentNode : nodeList) {
+                        nodeManager.addNode(currentNode);
+                    }
+                }
+                if (NetworkChangeReceiver.isResyncing()) {
+                    Log.i(LOG_TAG, "Re-syncing complete.");
+                }
+                NetworkChangeReceiver.setIsResyncing(false);
+                Log.i(LOG_TAG, "Current Nodes: " +Utility.convertNodeListToJson(nodeManager.getCurrentNodes()));
                 break;
             default:
                 Log.e(LOG_TAG, "Unsupported request ignoring.");
         }
-        if(fail) {
+        if(closeSocket) {
             try {
                 requestSocket.close();
             }

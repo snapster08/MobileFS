@@ -33,6 +33,10 @@ public class MessageContract {
         // types for close file operation
         public final static int MSG_FILE_CLOSE = 700;
 
+        // types for resyncing
+        public final static int MSG_GET_GROUP_INFO = 800;
+        public final static int MSG_GROUP_INFO = 801;
+
     }
 
 
