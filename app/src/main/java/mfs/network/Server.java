@@ -370,11 +370,6 @@ public class Server {
                 permissionManager.releaseLock(file, request.getSenderId());
                 break;
             case MessageContract.Type.MSG_GET_GROUP_INFO:
-                if (NetworkChangeReceiver.isResyncing()) {
-                    Log.i(LOG_TAG, "Resync in progress here so not responding.");
-                    closeSocket = true;
-                    break;
-                }
                 String requesterAddress = request.getBody();
                 // send all node info in response
                 List<MobileNode> currentNodes = nodeManager.getCurrentNodes();

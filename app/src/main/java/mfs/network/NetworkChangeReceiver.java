@@ -7,7 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import mfs.Utility;
 import mfs.node.MobileNode;
@@ -33,14 +32,14 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         Log.i(LOG_TAG, "Received a Network change intent.");
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork != null) {
+//        if (activeNetwork != null) {
             Log.i(LOG_TAG, "Connected to Internet.");
             isResyncing = true;
             resyncTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         Log.e(LOG_TAG, "InterruptedException", e);
 
@@ -52,31 +51,25 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                             MessageContract.Type.MSG_GET_GROUP_INFO,
                             nodeManager.generateJoiningLink());
 
-                    // this is a hack to overcome EHOSTUNREACH error
-                    String myAddress = nodeManager.generateJoiningLink();
-                    Client.getInstance().sendMessage(
-                            Utility.getIpFromAddress(myAddress),
-                            Utility.getPortFromAddress(myAddress),
-                            Utility.convertMessageToString(getGroupInfoMessage)
-                    );
-                    // End of hack
-
                     synchronized (nodeManager.getCurrentNodes()) {
-                        for(MobileNode node : nodeManager.getCurrentNodes()) {
-                            Client.getInstance().sendMessage(
-                                    Utility.getIpFromAddress(node.getAddress()),
-                                    Utility.getPortFromAddress(node.getAddress()),
-                                    Utility.convertMessageToString(getGroupInfoMessage)
-                            );
+                        for(int i = 0; i < 2;i++) {
+                            for(MobileNode node : nodeManager.getCurrentNodes()) {
+                                if(!node.getId().equals(ServiceAccessor.getMyId())) {
+                                    Client.getInstance().sendMessage(
+                                            Utility.getIpFromAddress(node.getAddress()),
+                                            Utility.getPortFromAddress(node.getAddress()),
+                                            Utility.convertMessageToString(getGroupInfoMessage)
+                                    );
+                                }
+                            }
                         }
                     }
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-        else {
-            Toast.makeText( context, "Not Connected to Internet.", Toast.LENGTH_SHORT ).show();
-            Log.i(LOG_TAG, "Not Connected to Internet.");
-        }
+       // }
+//        else {
+//            Log.i(LOG_TAG, "Not Connected to Internet.");
+//        }
     }
 }
